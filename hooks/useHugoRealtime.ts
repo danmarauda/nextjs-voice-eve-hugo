@@ -31,7 +31,7 @@ export interface HugoRealtimeSession {
 
 export interface UseHugoRealtimeResult {
   orbState: HugoOrbState;
-  status: "disconnected" | "connecting" | "connected" | "error";
+  status: ReturnType<typeof useRealtime>["status"];
   isCapturing: boolean;
   isPlaying: boolean;
   /** UIMessage[] transcript turns from the realtime session. */
@@ -289,7 +289,7 @@ export function useHugoRealtime(
     if (status === "error" || error) return "error";
     if (!session) return "auth_required";
     if (status === "connecting") return "connecting";
-    if (status === "disconnected") return "idle";
+    if (status !== "connected") return "idle";
     // connected:
     if (isPlaying) return "speaking";
     if (isCapturing) return "listening";
@@ -305,7 +305,7 @@ export function useHugoRealtime(
     isPlaying,
     messages,
     error,
-    audioLevel: status === "disconnected" ? 0 : audioLevel,
+    audioLevel: status === "connected" ? audioLevel : 0,
     connect,
     disconnect,
     toggleMic,

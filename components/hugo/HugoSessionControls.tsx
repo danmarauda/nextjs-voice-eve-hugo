@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { HugoOrbState } from "@/lib/types";
+import type { UseHugoRealtimeResult } from "@/hooks/useHugoRealtime";
 
 /**
  * HugoSessionControls — the voice session control bar (PRD 5.4).
@@ -15,7 +16,7 @@ import type { HugoOrbState } from "@/lib/types";
  * accessible label and keyboard-visible focus.
  */
 
-type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
+type ConnectionStatus = UseHugoRealtimeResult["status"];
 
 const STATE_BADGE: Record<HugoOrbState, { label: string; variant: BadgeProps["variant"] }> = {
   idle: { label: "Idle", variant: "muted" },
@@ -53,7 +54,10 @@ export function HugoSessionControls({
 }) {
   const isConnected = status === "connected";
   const isConnecting = status === "connecting";
-  const badge = STATE_BADGE[orbState];
+  const isClosing = status === "closing";
+  const badge = isClosing
+    ? { label: "Disconnecting", variant: "muted" as const }
+    : STATE_BADGE[orbState];
   const canInterrupt =
     isConnected && (orbState === "speaking" || orbState === "thinking" || orbState === "tool_running");
 
@@ -78,7 +82,7 @@ export function HugoSessionControls({
 
       {/* Controls */}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {!isConnected && !isConnecting ? (
+        {!isConnected && !isConnecting && !isClosing ? (
           <Button
             variant="primary"
             size="md"

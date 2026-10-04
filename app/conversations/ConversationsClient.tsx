@@ -130,7 +130,7 @@ export function ConversationsClient() {
     setCreating(true);
     try {
       const id = await createConversation({ mode: "mixed" });
-      window.location.href = `/chat?c=${id}`;
+      router.push(`/chat?c=${encodeURIComponent(id)}`);
     } catch {
       toast.error("Couldn't start a new conversation.");
       setCreating(false);

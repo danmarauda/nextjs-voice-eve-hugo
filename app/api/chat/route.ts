@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   streamText,
-  convertToModelMessages,
   stepCountIs,
   type ModelMessage,
   type UIMessage,
@@ -25,9 +24,19 @@ import { REALTIME_TOKEN_RATE } from "@/lib/constants";
 
 export const maxDuration = 60;
 
+const MAX_USER_MESSAGE_CHARS = 4000;
+
 const Body = z.object({
-  messages: z.array(z.any()).max(200),
-  conversationId: z.string().optional(),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant", "system"]),
+        parts: z.array(z.object({ type: z.string() }).passthrough()).max(50).optional(),
+      }).passthrough(),
+    )
+    .min(1)
+    .max(200),
+  conversationId: z.string().min(1).max(64).optional(),
 });
 
 /**
@@ -47,8 +56,20 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-  const messages = parsed.data.messages as UIMessage[];
+  const messages = parsed.data.messages as unknown as UIMessage[];
   const incomingConversationId = parsed.data.conversationId;
+
+  // Only the newest user turn is taken from the client. Prior history always
+  // comes from Convex, so a client cannot inject forged assistant, system, or
+  // tool turns into the model context.
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  const userText = lastUser ? extractText(lastUser) : "";
+  if (!userText || userText.length > MAX_USER_MESSAGE_CHARS) {
+    return NextResponse.json(
+      { error: `Messages must be 1–${MAX_USER_MESSAGE_CHARS} characters.` },
+      { status: 400 },
+    );
+  }
 
   const me = await fetchQuery(api.users.currentUser, {}, { token });
   if (!me) {
@@ -71,6 +92,19 @@ export async function POST(req: Request) {
         },
       },
     );
+  }
+
+  // Resuming is owner-only, even for admins, and is checked before any spend.
+  if (incomingConversationId) {
+    const convo = await fetchQuery(
+      api.conversations.get,
+      { conversationId: incomingConversationId as Id<"conversations"> },
+      { token },
+    ).catch(() => null);
+    if (!convo || convo.userId !== me._id) {
+      track("chat_conversation_denied", { userId: me._id });
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
   }
 
   // Enforce daily text-message limit.
@@ -127,9 +161,6 @@ export async function POST(req: Request) {
   // stored history (BEFORE persisting the new turn) and append the new user
   // message, so context is never lost and never duplicated regardless of what
   // the client sends (PRD 5.5 "continue the same session in text chat").
-  const lastUser = [...messages].reverse().find((m) => m.role === "user");
-  const userText = lastUser ? extractText(lastUser) : "";
-
   let modelMessages: ModelMessage[];
   if (isResume) {
     const prior = await fetchQuery(
@@ -144,21 +175,17 @@ export async function POST(req: Request) {
         content: m.content || m.transcript || "",
       }))
       .filter((m) => m.content.length > 0);
-    modelMessages = userText
-      ? [...priorModel, { role: "user", content: userText }]
-      : priorModel;
+    modelMessages = [...priorModel, { role: "user", content: userText }];
   } else {
-    modelMessages = await convertToModelMessages(messages);
+    modelMessages = [{ role: "user", content: userText }];
   }
 
   // Persist the latest user turn (after reading prior history to avoid dupes).
-  if (userText) {
-    await fetchMutation(
-      api.messages.append,
-      { conversationId, role: "user", modality: "text", content: userText },
-      { token },
-    ).catch(() => {});
-  }
+  await fetchMutation(
+    api.messages.append,
+    { conversationId, role: "user", modality: "text", content: userText },
+    { token },
+  ).catch(() => {});
 
   // Per-user memory + identity for the system prompt.
   const memories = await fetchQuery(api.memories.listOwn, {}, { token }).catch(

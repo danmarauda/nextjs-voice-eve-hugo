@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import { gateway } from "@ai-sdk/gateway";
-import { z } from "zod";
 import { fetchQuery, fetchMutation, authToken } from "@/lib/convex-server";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { getRealtimeModel, isAiConfigured } from "@/lib/ai";
+import { isAiConfigured } from "@/lib/ai";
 import { rateLimit } from "@/lib/rate-limit";
 import { REALTIME_TOKEN_RATE, REALTIME_TOKEN_TTL_SECONDS } from "@/lib/constants";
 import { track } from "@/lib/telemetry";
 
-const Body = z.object({
-  sessionConfig: z.record(z.string(), z.unknown()).optional(),
-});
+function buildSessionConfig(voice: string): Record<string, unknown> {
+  return { voice, turnDetection: { type: "server-vad" } };
+}
 
 interface CachedRealtimeToken {
   expiresAtMs: number;
@@ -80,42 +79,53 @@ export async function POST(req: Request) {
   }
 
   const url = new URL(req.url);
-  const sessionParam = url.searchParams.get("session") as
-    | Id<"voiceSessions">
-    | null;
-  if (!sessionParam) {
+  const sessionParam = url.searchParams.get("session");
+  if (!sessionParam || sessionParam.length > 64) {
     return NextResponse.json(
       { error: "A voice session is required before connecting." },
       { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
 
-  const parsed = Body.safeParse(await req.json().catch(() => ({})));
-  const sessionConfig = parsed.success ? parsed.data.sessionConfig : undefined;
+  // Ownership and eligibility are checked before any cache lookup or minting,
+  // so neither a fresh nor a cached token can be issued for a foreign, ended,
+  // or failed session.
+  const owned = await fetchQuery(
+    api.voiceSessions.getForConnect,
+    { voiceSessionId: sessionParam },
+    { token },
+  ).catch(() => null);
+  if (!owned) {
+    track("realtime_token_denied", { userId: me._id });
+    return NextResponse.json(
+      { error: "That voice session is not available. Start a new session." },
+      { status: 404, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  const voiceSessionId: Id<"voiceSessions"> = owned.voiceSessionId;
 
-  // Mint for the same admin-configured realtime model the session was created
-  // with, so the token and the client codec agree.
-  const runtime = await fetchQuery(api.settings.getRuntime, {}, { token }).catch(
-    () => null,
-  );
-  const model = getRealtimeModel(runtime?.defaultRealtimeModel);
+  // The browser's request body is ignored: instructions, tools, and model
+  // overrides must not be client-controlled. The token is minted for the model
+  // and voice recorded when the session was created, so token and codec agree.
+  const model = owned.model;
+  const sessionConfig = buildSessionConfig(owned.voice);
   const cacheKey = tokenCacheKey({
     model,
     sessionConfig,
     userId: me._id,
-    voiceSessionId: sessionParam,
+    voiceSessionId,
   });
   const cached = getCachedRealtimeToken(cacheKey);
   if (cached) {
     await fetchMutation(
       api.voiceSessions.updateStatus,
-      { voiceSessionId: sessionParam, status: "connecting" },
+      { voiceSessionId, status: "connecting" },
       { token },
     ).catch(() => {});
     track("realtime_token_reused", {
       model,
       userId: me._id,
-      voiceSessionId: sessionParam,
+      voiceSessionId,
     });
     return NextResponse.json(
       {
@@ -132,7 +142,7 @@ export async function POST(req: Request) {
     await fetchMutation(
       api.voiceSessions.updateStatus,
       {
-        voiceSessionId: sessionParam,
+        voiceSessionId,
         status: "failed",
         errorCode: "no_gateway_key",
         errorMessage: "AI Gateway key not configured.",
@@ -190,7 +200,7 @@ export async function POST(req: Request) {
 
     await fetchMutation(
       api.voiceSessions.updateStatus,
-      { voiceSessionId: sessionParam, status: "connecting" },
+      { voiceSessionId, status: "connecting" },
       { token },
     ).catch(() => {});
 
@@ -198,7 +208,7 @@ export async function POST(req: Request) {
       latencyMs: Date.now() - startedAt,
       model,
       userId: me._id,
-      voiceSessionId: sessionParam,
+      voiceSessionId,
     });
 
     // Only the token + url cross to the browser — never the API key.
@@ -215,7 +225,7 @@ export async function POST(req: Request) {
     await fetchMutation(
       api.voiceSessions.updateStatus,
       {
-        voiceSessionId: sessionParam,
+        voiceSessionId,
         status: "failed",
         errorCode: "token_mint_failed",
         errorMessage: message,
@@ -226,7 +236,7 @@ export async function POST(req: Request) {
       error: message,
       model,
       userId: me._id,
-      voiceSessionId: sessionParam,
+      voiceSessionId,
     });
     return NextResponse.json(
       { error: "Could not start realtime voice. Falling back to text chat." },

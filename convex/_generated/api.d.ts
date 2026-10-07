@@ -16,6 +16,7 @@ import type * as http from "../http.js";
 import type * as memories from "../memories.js";
 import type * as messages from "../messages.js";
 import type * as model_authz from "../model/authz.js";
+import type * as model_passwordPolicy from "../model/passwordPolicy.js";
 import type * as model_usage from "../model/usage.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   memories: typeof memories;
   messages: typeof messages;
   "model/authz": typeof model_authz;
+  "model/passwordPolicy": typeof model_passwordPolicy;
   "model/usage": typeof model_usage;
   seed: typeof seed;
   settings: typeof settings;

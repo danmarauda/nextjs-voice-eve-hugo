@@ -22,7 +22,7 @@ type UserRow = {
   status: "active" | "disabled";
   createdAt: number;
   lastSeenAt: number;
-  isDefaultAdmin: boolean;
+  isProtected: boolean;
 };
 
 const COLSPAN = 7;
@@ -133,7 +133,7 @@ export default function AdminUsersPage() {
             )}
 
             {users?.map((u) => {
-              const protectedRow = u.isDefaultAdmin;
+              const protectedRow = u.isProtected;
               const isPending = pendingId === u._id;
               return (
                 <TR
@@ -191,7 +191,7 @@ export default function AdminUsersPage() {
                         }
                         pending={isPending}
                         disabled={protectedRow}
-                        title={protectedRow ? "Protected owner" : undefined}
+                        title={protectedRow ? "Your own account or the last active admin" : undefined}
                       />
                       {/* Status toggle */}
                       <ConfirmButton
@@ -217,7 +217,7 @@ export default function AdminUsersPage() {
                         }
                         pending={isPending}
                         disabled={protectedRow}
-                        title={protectedRow ? "Protected owner" : undefined}
+                        title={protectedRow ? "Your own account or the last active admin" : undefined}
                       />
                     </div>
                   </TD>

@@ -1,18 +1,17 @@
 import { Password } from "@convex-dev/auth/providers/Password";
 import { convexAuth } from "@convex-dev/auth/server";
+import { ConvexError } from "convex/values";
+import { passwordProblem } from "./model/passwordPolicy";
 
 /**
  * Hugo authentication (PRD 5.1).
  *
- * Self-contained email + password auth via Convex Auth — no third-party keys
- * required. On account creation the default-admin email is granted the `admin`
- * role server-side; every other account is a `user`. Role is therefore set in
- * trusted backend code and can never be spoofed from the client.
+ * Self-contained email + password auth via Convex Auth. Every new account is a
+ * `user`. Email ownership is not verified, so a submitted address must never
+ * grant privileges; the first admin is promoted by an operator through the
+ * internal `admin.bootstrapAdmin` mutation.
  */
 
-const DEFAULT_ADMIN_EMAIL = (
-  process.env.DEFAULT_ADMIN_EMAIL ?? "solsymbaiex@gmail.com"
-).toLowerCase();
 const DAILY_VOICE_MINUTES_LIMIT = Number(
   process.env.DAILY_VOICE_MINUTES_LIMIT ?? 30,
 );
@@ -34,13 +33,17 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         }
         return result;
       },
+      validatePasswordRequirements(password) {
+        const problem = passwordProblem(password);
+        if (problem) throw new ConvexError({ code: "INVALID_PASSWORD", message: problem });
+      },
     }),
   ],
   callbacks: {
     /**
      * Owns user-document creation/update. New accounts get Hugo profile
-     * defaults; the default-admin email is elevated to `admin`. Existing
-     * accounts just refresh activity timestamps.
+     * defaults and the `user` role. Existing accounts just refresh activity
+     * timestamps; their role is never changed here.
      */
     async createOrUpdateUser(ctx, { existingUserId, profile }) {
       const now = Date.now();
@@ -66,13 +69,11 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         return existingUserId;
       }
 
-      const role = email && email === DEFAULT_ADMIN_EMAIL ? "admin" : "user";
-
       return await ctx.db.insert("users", {
         email,
         name,
         image,
-        role,
+        role: "user",
         status: "active",
         createdAt: now,
         updatedAt: now,

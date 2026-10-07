@@ -28,7 +28,9 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   }
 
   if (isProtectedRoute(request) && !authed) {
-    const next = encodeURIComponent(request.nextUrl.pathname);
+    const next = encodeURIComponent(
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
     return nextjsMiddlewareRedirect(request, `/sign-in?next=${next}`);
   }
 });

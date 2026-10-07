@@ -1,17 +1,38 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { requireAdmin, logAudit } from "./model/authz";
 import { startOfTodayUtc } from "./model/usage";
 
 /**
  * Admin console data (PRD 5.8). All functions require the admin role. Every
- * mutation writes an audit log. The default-owner account is protected from
- * demotion/disable.
+ * mutation writes an audit log. Admins cannot demote or disable themselves,
+ * and the last active admin cannot be removed, so the console can never lock
+ * every operator out.
  */
 
-const DEFAULT_ADMIN_EMAIL = (
-  process.env.DEFAULT_ADMIN_EMAIL ?? "solsymbaiex@gmail.com"
-).toLowerCase();
+async function activeAdminIds(ctx: QueryCtx | MutationCtx): Promise<Id<"users">[]> {
+  const admins = await ctx.db
+    .query("users")
+    .withIndex("by_role", (q) => q.eq("role", "admin"))
+    .take(1000);
+  return admins.filter((u) => u.status === "active").map((u) => u._id);
+}
+
+async function assertNotRemovingLastAdmin(
+  ctx: MutationCtx,
+  actorId: Id<"users">,
+  targetId: Id<"users">,
+): Promise<void> {
+  if (actorId === targetId) {
+    throw new Error("You cannot remove your own admin access or disable your own account.");
+  }
+  const remaining = (await activeAdminIds(ctx)).filter((id) => id !== targetId);
+  if (remaining.length === 0) {
+    throw new Error("At least one active admin is required.");
+  }
+}
 
 /** Overview metrics for the dashboard landing. */
 export const overview = query({
@@ -100,7 +121,8 @@ export const overview = query({
 export const listUsers = query({
   args: { search: v.optional(v.string()), limit: v.optional(v.number()) },
   handler: async (ctx, { search, limit }) => {
-    await requireAdmin(ctx);
+    const actor = await requireAdmin(ctx);
+    const admins = await activeAdminIds(ctx);
     const rows = await ctx.db.query("users").take(Math.min(limit ?? 200, 1000));
     const needle = search?.toLowerCase().trim();
     const filtered = needle
@@ -120,7 +142,9 @@ export const listUsers = query({
         status: u.status,
         createdAt: u.createdAt,
         lastSeenAt: u.lastSeenAt,
-        isDefaultAdmin: (u.email ?? "").toLowerCase() === DEFAULT_ADMIN_EMAIL,
+        isProtected:
+          u._id === actor._id ||
+          (admins.length === 1 && admins[0] === u._id),
       }));
   },
 });
@@ -158,7 +182,7 @@ export const userUsageSummary = query({
   },
 });
 
-/** Admin: promote/demote a user (audited; default owner protected). */
+/** Admin: promote/demote a user (audited; self and last admin protected). */
 export const setUserRole = mutation({
   args: {
     userId: v.id("users"),
@@ -168,8 +192,8 @@ export const setUserRole = mutation({
     const admin = await requireAdmin(ctx);
     const target = await ctx.db.get(userId);
     if (!target) throw new Error("User not found");
-    if ((target.email ?? "").toLowerCase() === DEFAULT_ADMIN_EMAIL && role !== "admin") {
-      throw new Error("The default owner account cannot be demoted.");
+    if (role !== "admin" && target.role === "admin") {
+      await assertNotRemovingLastAdmin(ctx, admin._id, userId);
     }
     await ctx.db.patch(userId, { role, updatedAt: Date.now() });
     await logAudit(ctx, admin._id, "user.setRole", "user", userId, { role });
@@ -177,7 +201,7 @@ export const setUserRole = mutation({
   },
 });
 
-/** Admin: enable/disable an account (audited; default owner protected). */
+/** Admin: enable/disable an account (audited; self and last admin protected). */
 export const setUserStatus = mutation({
   args: {
     userId: v.id("users"),
@@ -187,15 +211,45 @@ export const setUserStatus = mutation({
     const admin = await requireAdmin(ctx);
     const target = await ctx.db.get(userId);
     if (!target) throw new Error("User not found");
-    if (
-      (target.email ?? "").toLowerCase() === DEFAULT_ADMIN_EMAIL &&
-      status === "disabled"
-    ) {
-      throw new Error("The default owner account cannot be disabled.");
+    if (status === "disabled") {
+      if (target._id === admin._id) {
+        throw new Error("You cannot remove your own admin access or disable your own account.");
+      }
+      if (target.role === "admin") {
+        await assertNotRemovingLastAdmin(ctx, admin._id, userId);
+      }
     }
     await ctx.db.patch(userId, { status, updatedAt: Date.now() });
     await logAudit(ctx, admin._id, "user.setStatus", "user", userId, { status });
     return { ok: true };
+  },
+});
+
+/**
+ * Operator-only first-admin bootstrap. Internal functions cannot be called
+ * from browsers; run from the Convex dashboard or
+ * `npx convex run admin:bootstrapAdmin '{"email":"owner@example.com"}'`
+ * after that person has signed up. Refuses once any active admin exists, so
+ * later promotions go through the audited console.
+ */
+export const bootstrapAdmin = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    if ((await activeAdminIds(ctx)).length > 0) {
+      throw new Error("An active admin already exists; promote users from the admin console.");
+    }
+    const normalized = email.toLowerCase().trim();
+    const target = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", normalized))
+      .unique();
+    if (!target) throw new Error("No account exists for that email.");
+    if (target.status !== "active") throw new Error("That account is disabled.");
+    await ctx.db.patch(target._id, { role: "admin", updatedAt: Date.now() });
+    await logAudit(ctx, target._id, "user.bootstrapAdmin", "user", target._id, {
+      via: "internal",
+    });
+    return { userId: target._id };
   },
 });
 

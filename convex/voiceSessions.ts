@@ -49,6 +49,30 @@ export const create = mutation({
   },
 });
 
+/**
+ * Strict-owner eligibility check used before minting a realtime token. Admins
+ * get no exception: a token opens a live, billable model connection, so only
+ * the session's owner may connect, and only while it is still open. Returns
+ * null for missing, foreign, or finished sessions so callers cannot probe IDs.
+ */
+export const getForConnect = query({
+  args: { voiceSessionId: v.string() },
+  handler: async (ctx, { voiceSessionId }) => {
+    const user = await requireUser(ctx);
+    const id = ctx.db.normalizeId("voiceSessions", voiceSessionId);
+    if (!id) return null;
+    const session = await ctx.db.get(id);
+    if (!session || session.userId !== user._id) return null;
+    if (session.endedAt !== undefined) return null;
+    if (session.status === "ended" || session.status === "failed") return null;
+    return {
+      voiceSessionId: session._id,
+      model: session.model,
+      voice: session.voice,
+    };
+  },
+});
+
 /** Update session status / error (owner). */
 export const updateStatus = mutation({
   args: {

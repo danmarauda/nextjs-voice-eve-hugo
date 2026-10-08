@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { Chip } from "@heroui/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +25,11 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
+  extends Omit<React.HTMLAttributes<HTMLSpanElement>, "color">,
     VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ variant }), className)} {...props} />;
+export function Badge({ className, variant, children, ...props }: BadgeProps) {
+  return <Chip size="sm" className={cn("h-auto", badgeVariants({ variant }), className)} {...props}>{children}</Chip>;
 }
 
 export { badgeVariants };

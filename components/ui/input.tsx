@@ -1,11 +1,14 @@
+"use client";
+
 import * as React from "react";
+import { Input as HeroInput, TextArea as HeroTextArea, Label as HeroLabel } from "@heroui/react";
 import { cn } from "@/lib/utils";
 
 export const Input = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
 >(({ className, ...props }, ref) => (
-  <input
+  <HeroInput
     ref={ref}
     className={cn(
       "flex h-10 w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder:text-text-muted",
@@ -22,7 +25,7 @@ export const Textarea = React.forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
 >(({ className, ...props }, ref) => (
-  <textarea
+  <HeroTextArea
     ref={ref}
     className={cn(
       "flex min-h-20 w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder:text-text-muted",
@@ -37,7 +40,7 @@ Textarea.displayName = "Textarea";
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label
+    <HeroLabel
       className={cn("text-sm font-medium text-text-secondary", className)}
       {...props}
     />

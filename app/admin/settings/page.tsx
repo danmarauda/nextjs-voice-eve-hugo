@@ -7,11 +7,12 @@ import { Info, Save } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Skeleton, Spinner } from "@/components/ui/misc";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { cn } from "@/lib/utils";
 import {
   REALTIME_MODEL_OPTIONS,
   TEXT_MODEL_OPTIONS,
@@ -217,26 +218,17 @@ function SelectField({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0 flex-1 space-y-1.5">
-        <Label htmlFor={settingKey}>{label}</Label>
-        <select
+        {/* Include the current value even if it's not in the known option set. */}
+        <Select
           id={settingKey}
+          label={label}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className={cn(
-            "flex h-10 w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm font-mono text-text-primary",
-            "outline-none transition-colors focus-visible:border-hugo-cyan/50 focus-visible:ring-2 focus-visible:ring-hugo-cyan/20",
-          )}
-        >
-          {/* Include the current value even if it's not in the known option set. */}
-          {!options.some((o) => o.value === value) && value ? (
-            <option value={value}>{value}</option>
-          ) : null}
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          onValueChange={setValue}
+          options={value && !options.some((option) => option.value === value)
+            ? [{ value, label: value }, ...options]
+            : options}
+          className="font-mono"
+        />
         {hint ? <p className="text-xs text-text-muted">{hint}</p> : null}
       </div>
       <SaveButton
@@ -327,29 +319,13 @@ function ToggleField({
         </div>
         <p className="text-xs text-text-muted">{description}</p>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={value}
-        aria-label={label}
+      <Switch
+        label={label}
+        checked={value}
         disabled={saving}
-        onClick={toggle}
-        className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-hugo-cyan/40 disabled:opacity-50",
-          value
-            ? danger
-              ? "border-warning/40 bg-warning/30"
-              : "border-hugo-cyan/40 bg-hugo-cyan/30"
-            : "border-border bg-surface-elevated",
-        )}
-      >
-        <span
-          className={cn(
-            "inline-block size-4 translate-x-1 rounded-full bg-text-primary transition-transform",
-            value && "translate-x-6",
-          )}
-        />
-      </button>
+        danger={danger}
+        onCheckedChange={() => void toggle()}
+      />
     </div>
   );
 }

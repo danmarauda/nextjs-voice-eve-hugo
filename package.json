@@ -21,6 +21,8 @@
     "@ai-sdk/openai": "^4.0.83",
     "@ai-sdk/react": "^4.0.130",
     "@convex-dev/auth": "^0.0.96",
+    "@heroui/react": "3.2.6",
+    "@heroui/styles": "3.2.6",
     "ai": "^7.0.127",
     "animejs": "^4.5.0",
     "class-variance-authority": "^0.7.1",

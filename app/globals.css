@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 /*
  * Hugo design system — dark-first, Vercel/Bklit-inspired command surface.
@@ -51,6 +52,41 @@
 
   --grid-line: rgba(255, 255, 255, 0.04);
   --glow: rgba(103, 232, 249, 0.22);
+}
+
+:root,
+.dark {
+  --foreground: var(--text-primary);
+  --muted: var(--text-secondary);
+  --accent: var(--hugo-cyan);
+  --accent-foreground: var(--surface);
+  --focus: var(--hugo-cyan);
+  --link: var(--hugo-cyan);
+  --default: var(--surface-elevated);
+  --default-foreground: var(--text-primary);
+  --surface-foreground: var(--text-primary);
+  --surface-secondary: var(--surface-elevated);
+  --surface-secondary-foreground: var(--text-primary);
+  --surface-tertiary: var(--surface-elevated);
+  --surface-tertiary-foreground: var(--text-primary);
+  --overlay: var(--surface-elevated);
+  --overlay-foreground: var(--text-primary);
+  --field-background: var(--surface-elevated);
+  --field-foreground: var(--text-primary);
+  --field-placeholder: var(--text-muted);
+  --field-border: var(--border);
+  --field-border-width: 1px;
+  --field-radius: calc(var(--radius) - 0.25rem);
+  --field-shadow: none;
+  --surface-shadow: none;
+  --separator: var(--border);
+  --danger: var(--error);
+  --danger-foreground: var(--background);
+  --success-foreground: var(--background);
+  --warning-foreground: var(--background);
+  --segment: var(--surface-elevated);
+  --segment-foreground: var(--text-primary);
+  --skeleton-animation: pulse;
 }
 
 @theme inline {

@@ -1,14 +1,16 @@
+"use client";
+
 import * as React from "react";
+import {
+  Avatar as HeroAvatar,
+  Separator as HeroSeparator,
+  Skeleton as HeroSkeleton,
+  Spinner as HeroSpinner,
+} from "@heroui/react";
 import { cn } from "@/lib/utils";
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("animate-pulse rounded-md bg-surface-elevated", className)}
-      style={{ animationDuration: "1.6s" }}
-      {...props}
-    />
-  );
+  return <HeroSkeleton animationType="pulse" className={cn("rounded-md bg-surface-elevated", className)} {...props} />;
 }
 
 export function Separator({
@@ -18,16 +20,7 @@ export function Separator({
   className?: string;
   orientation?: "horizontal" | "vertical";
 }) {
-  return (
-    <div
-      role="separator"
-      className={cn(
-        "bg-border",
-        orientation === "horizontal" ? "h-px w-full" : "w-px h-full",
-        className,
-      )}
-    />
-  );
+  return <HeroSeparator orientation={orientation} className={className} />;
 }
 
 export function Avatar({
@@ -39,32 +32,15 @@ export function Avatar({
   src?: string | null;
   className?: string;
 }) {
-  const letters = (name ?? "?").trim().slice(0, 2).toUpperCase();
+  const letters = (name?.trim() || "?").slice(0, 2).toUpperCase();
   return (
-    <div
-      className={cn(
-        "flex size-8 items-center justify-center overflow-hidden rounded-full bg-surface-elevated border border-border text-xs font-medium text-text-secondary",
-        className,
-      )}
-    >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={name ?? "avatar"} className="size-full object-cover" />
-      ) : (
-        letters
-      )}
-    </div>
+    <HeroAvatar size="sm" className={cn("size-8 border border-border bg-surface-elevated text-text-secondary", className)}>
+      {src ? <HeroAvatar.Image src={src} alt={name ?? "Avatar"} /> : null}
+      <HeroAvatar.Fallback aria-label={name ?? "Avatar"}>{letters}</HeroAvatar.Fallback>
+    </HeroAvatar>
   );
 }
 
 export function Spinner({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-block size-4 rounded-full border-2 border-text-muted/30 border-t-hugo-cyan",
-        className,
-      )}
-      style={{ animation: "hugo-spin 0.7s linear infinite" }}
-    />
-  );
+  return <HeroSpinner size="sm" color="current" aria-label="Loading" className={cn("size-4", className)} />;
 }

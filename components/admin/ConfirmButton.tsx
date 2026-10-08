@@ -69,12 +69,15 @@ export function ConfirmButton({
   }
 
   return (
-    <span className="inline-flex items-center gap-1">
+    <span className="inline-flex items-center gap-1" onKeyDown={(event) => {
+      if (event.key === "Escape") disarm();
+    }}>
       <Button
         type="button"
         variant={armed ? "destructive" : variant}
         size={size}
         disabled={disabled || pending}
+        isPending={pending}
         title={title}
         aria-label={typeof label === "string" ? label : undefined}
         onClick={handleClick}
@@ -84,14 +87,9 @@ export function ConfirmButton({
         {pending ? "Working…" : armed ? confirmLabel : label}
       </Button>
       {armed && !pending && (
-        <button
-          type="button"
-          onClick={disarm}
-          aria-label="Cancel"
-          className="text-text-muted outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-hugo-cyan/40 rounded"
-        >
-          <span className="text-xs font-mono">esc</span>
-        </button>
+        <Button type="button" variant="ghost" size="sm" onPress={disarm} aria-label="Cancel">
+          <span className="font-mono">esc</span>
+        </Button>
       )}
     </span>
   );

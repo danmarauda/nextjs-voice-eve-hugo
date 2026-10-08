@@ -27,6 +27,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Separator, Skeleton, Spinner } from "@/components/ui/misc";
 import { cn, formatUsd } from "@/lib/utils";
 import { useAuthTransition } from "@/components/providers/ConvexClientProvider";
@@ -90,28 +92,7 @@ function ToggleRow({
         <span className="text-sm font-medium text-text-primary">{label}</span>
         <span className="text-xs text-text-muted">{description}</span>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        disabled={pending}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors outline-none",
-          "focus-visible:ring-2 focus-visible:ring-hugo-cyan/60 disabled:opacity-50",
-          checked
-            ? "border-hugo-cyan/40 bg-hugo-cyan/30"
-            : "border-border bg-surface-elevated",
-        )}
-      >
-        <span
-          className={cn(
-            "inline-block size-4 rounded-full bg-text-primary transition-transform",
-            checked ? "translate-x-5" : "translate-x-1",
-          )}
-        />
-      </button>
+      <Switch label={label} checked={checked} disabled={pending} onCheckedChange={onChange} />
     </div>
   );
 }
@@ -349,25 +330,16 @@ export function SettingsClient() {
 
           {/* Default voice */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="voice-select">Default voice</Label>
             <div className="flex items-center gap-2">
-              <select
+              <Select
                 id="voice-select"
+                label="Default voice"
                 value={prefs.voice ?? VOICE_OPTIONS[0]}
                 disabled={me === undefined || savingPref}
-                onChange={(e) => void savePreference({ voice: e.target.value })}
-                className={cn(
-                  "h-10 w-full max-w-xs rounded-md border border-border bg-surface-elevated px-3 text-sm text-text-primary capitalize",
-                  "outline-none transition-colors focus-visible:border-hugo-cyan/50 focus-visible:ring-2 focus-visible:ring-hugo-cyan/20",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-              >
-                {VOICE_OPTIONS.map((voice) => (
-                  <option key={voice} value={voice} className="capitalize">
-                    {voice}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(voice) => void savePreference({ voice })}
+                options={VOICE_OPTIONS.map((voice) => ({ value: voice, label: voice }))}
+                className="max-w-xs capitalize"
+              />
               {savingPref && <Spinner />}
             </div>
             <p className="text-xs text-text-muted">
@@ -458,24 +430,14 @@ export function SettingsClient() {
           >
             <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="mem-type" className="text-xs">
-                  Type
-                </Label>
-                <select
+                <Select
                   id="mem-type"
+                  label="Type"
                   value={memType}
-                  onChange={(e) => setMemType(e.target.value as MemoryType)}
-                  className={cn(
-                    "h-10 w-full rounded-md border border-border bg-surface-elevated px-3 text-sm text-text-primary capitalize",
-                    "outline-none transition-colors focus-visible:border-hugo-cyan/50 focus-visible:ring-2 focus-visible:ring-hugo-cyan/20",
-                  )}
-                >
-                  {MEMORY_TYPES.map((t) => (
-                    <option key={t} value={t} className="capitalize">
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={(value) => setMemType(value as MemoryType)}
+                  options={MEMORY_TYPES.map((type) => ({ value: type, label: type }))}
+                  className="capitalize"
+                />
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="mem-key" className="text-xs">

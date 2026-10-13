@@ -7,7 +7,7 @@ export function LandingArtwork() {
       src={aliasMaterial}
       alt="Sculpted charcoal layers and silver-cut edges forming the ALIAS mark."
       fill
-      sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 480px, 560px"
+      sizes="100vw"
       preload
       placeholder="blur"
       className="pointer-events-none select-none object-cover"

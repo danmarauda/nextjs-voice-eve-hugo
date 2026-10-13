@@ -1,139 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useConvexAuth, useQuery } from "convex/react";
-import { ArrowRight, Lock, MessageSquareText, Mic } from "lucide-react";
-import { createScope, createTimeline, stagger, utils, type Scope } from "animejs";
-import { OrbSlot } from "@/components/hugo/OrbSlot";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { useConvexAuth } from "convex/react";
+import { ArrowRight } from "lucide-react";
+import { createScope, createTimeline } from "animejs";
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
-import { api } from "@/convex/_generated/api";
-
-/**
- * Hero — the interactive above-the-fold centerpiece for the landing page.
- *
- * Holds the only client-side behavior on the marketing surface: the orb's
- * onClick navigation and the auth-gated CTAs. Everything else on the page
- * stays a server component. Auth state is resolved via Convex's
- * <Authenticated> / <Unauthenticated> gates so the correct destinations
- * render without a flash of the wrong CTA.
- *
- * Motion: on mount, an Anime.js timeline sequences the entrance — orb,
- * eyebrow, headline (per-word), subcopy, then CTAs reveal with a spring-like
- * `out` ease. The elements are marked with `data-hero-*` hooks and start
- * hidden (opacity:0) via inline style so there is no flash before the
- * sequence runs. Under `prefers-reduced-motion`, everything is set visible
- * instantly with no transforms. The HugoOrb's own animation is untouched —
- * we only reveal its container.
- */
-
-
-function CtaRow({
-  talkHref,
-  textHref,
-  showSignInHint,
-}: {
-  talkHref: string;
-  textHref: string;
-  showSignInHint: boolean;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-3 lg:items-start">
-      <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
-        <Link
-          href={talkHref}
-          className={cn(
-            buttonVariants({ variant: "primary", size: "lg" }),
-            "w-full sm:w-auto",
-          )}
-        >
-          <Mic className="size-4" aria-hidden="true" />
-          Talk to ALIAS BDO
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </Link>
-        <Link
-          href={textHref}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "w-full sm:w-auto",
-          )}
-        >
-          <MessageSquareText className="size-4" aria-hidden="true" />
-          Type instead
-        </Link>
-      </div>
-      {showSignInHint ? (
-        <p className="flex items-center gap-1.5 text-sm leading-relaxed text-text-secondary">
-          <Lock className="size-3" aria-hidden="true" />
-          <span>
-            Sign-in required to start a live session.
-          </span>
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-/** Split a headline into per-word spans for staggered reveal, preserving
- *  inline accent markup. Words are wrapped in inline-block spans so transforms
- *  apply cleanly; whitespace between them is preserved with explicit spaces. */
-function HeadlineWords() {
-  return (
-    <h1 className="text-balance font-sans text-4xl font-medium leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
-      <span
-        data-hero-word
-        className="inline-block will-change-transform"
-        style={{ opacity: 0 }}
-      >
-        Meet
-      </span>{" "}
-      <span
-        data-hero-word
-        className="inline-block will-change-transform"
-        style={{ opacity: 0 }}
-      >
-        ALIAS BDO.
-      </span>
-    </h1>
-  );
-}
 
 export function Hero({
   artwork,
   initialAuthed = false,
-  guestPreviewEnabled = false,
 }: {
-  artwork: React.ReactNode;
+  artwork: ReactNode;
   /** Auth resolved on the server (app/page.tsx) so first paint is correct. */
   initialAuthed?: boolean;
-  /** Public guest-preview setting resolved on the server. */
-  guestPreviewEnabled?: boolean;
 }) {
-  // Guest preview is a runtime admin setting (read via the public settings
-  // query), NOT a build-time env var — so toggling it in /admin/settings takes
-  // effect without a redeploy. The server-resolved prop is the first-paint value
-  // (no flash); the live query takes over once it loads.
-  const settings = useQuery(api.settings.getPublic, {});
-  const guestPreview =
-    settings === undefined ? guestPreviewEnabled : settings?.guestPreviewEnabled === true;
-  const guestHref = guestPreview ? "/chat" : "/sign-in?next=/chat";
-
-  // Resolve auth as VALUES (not <Authenticated> wrappers) so the orb and CTAs
-  // stay stable across the auth-loading→resolved transition. During the loading
-  // window we use the SERVER-resolved value (initialAuthed), so server HTML and
-  // the first client paint agree — no CTA flash, no hydration mismatch. (Keeping
-  // the orb a single mounted instance also avoids the getPointAtLength
-  // "inactive document" remount error.)
   const router = useRouter();
   const { isLoading, isAuthenticated } = useConvexAuth();
   const authed = isLoading ? initialAuthed : isAuthenticated;
-  const orbHref = authed ? "/chat" : guestHref;
-
+  const destination = authed ? "/chat" : "/sign-in?next=%2Fchat";
   const rootRef = useRef<HTMLElement>(null);
-  const scopeRef = useRef<Scope | null>(null);
+  const navigatedRef = useRef(false);
+  const [finished, setFinished] = useState(false);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -141,137 +30,85 @@ export function Hero({
     if (!root) return;
 
     const scope = createScope({ root });
-    scopeRef.current = scope;
-
     scope.add(() => {
-      const reveal = utils.$("[data-hero-reveal]");
-      const words = utils.$("[data-hero-word]");
+      // Read the media query before the first frame, including hydration when
+      // useReducedMotion still holds its server snapshot.
+      const reduce = reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const timeline = createTimeline({
+        defaults: { ease: "out(3)" },
+        onComplete: () => setFinished(true),
+      });
 
-      // Reduced motion: no sequencing, no transforms — just make it visible.
-      if (reducedMotion) {
-        utils.set([...reveal, ...words], { opacity: 1, y: 0, scale: 1 });
+      if (reduce) {
+        timeline.add("[data-intro-artwork]", { opacity: [0.25, 0.35], duration: 180 });
         return;
       }
 
-      createTimeline({
-        defaults: { ease: "out(3)", duration: 720 },
-      })
-        // Orb: gentle confidence pop. Reveals the container only — HugoOrb's
-        // internal motion keeps running underneath.
-        .add("[data-hero-orb]", {
-          opacity: [0, 1],
-          scale: [0.92, 1],
-          duration: 900,
-          ease: "out(4)",
-        })
-        // Eyebrow badge.
-        .add(
-          "[data-hero-eyebrow]",
-          { opacity: [0, 1], y: [10, 0] },
-          "-=560",
-        )
-        // Headline, word by word.
-        .add(
-          words,
-          {
-            opacity: [0, 1],
-            y: [16, 0],
-            delay: stagger(70),
-            ease: "out(4)",
-          },
-          "-=460",
-        )
-        // Subcopy block.
-        .add(
-          "[data-hero-copy]",
-          { opacity: [0, 1], y: [12, 0] },
-          "-=420",
-        )
-        // CTAs land last with a touch more travel for emphasis.
-        .add(
-          "[data-hero-cta]",
-          { opacity: [0, 1], y: [14, 0], ease: "out(3)" },
-          "-=360",
-        );
+      timeline
+        .add("[data-intro-artwork]", {
+          scale: [1.12, 1],
+          duration: 2400,
+          ease: "out(2)",
+        }, 0)
+        .add("[data-intro-artwork]", { opacity: [0.25, 1], duration: 1000 }, 0)
+        .add("[data-intro-progress]", {
+          scaleX: [0, 1],
+          duration: 2400,
+          ease: "linear",
+        }, 0)
+        .add("[data-intro-artwork]", { opacity: 0.35, duration: 400 }, 2400)
+        .add("[data-intro-progress]", { opacity: 0, duration: 300 }, 2400);
     });
 
-    return () => {
-      scope.revert();
-      scopeRef.current = null;
-    };
+    return () => scope.revert();
   }, [reducedMotion]);
 
-  // Elements start hidden via inline opacity so the timeline can reveal them
-  // without a flash. Reduced-motion users get them set visible in the effect
-  // on the very next frame.
-  const hidden = { opacity: 0 };
+  useEffect(() => {
+    if (!finished || navigatedRef.current) return;
+    navigatedRef.current = true;
+    // Replace prevents Back from replaying the intro. /chat still performs its
+    // authoritative server-side identity check, including for expired tokens.
+    router.replace(destination);
+  }, [destination, finished, router]);
 
   return (
-    <section
+    <main
       ref={rootRef}
-      className="relative flex flex-col items-center gap-8 text-center lg:flex-row lg:gap-16 lg:text-left"
+      data-intro-state={finished ? "complete" : "playing"}
+      className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-background text-text-primary"
     >
-      <div className="relative isolate aspect-[6/5] w-full max-w-[30rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-surface lg:order-last lg:aspect-square lg:w-1/2 lg:max-w-none">
+      <h1 className="sr-only">ALIAS BDO</h1>
+      <div
+        aria-hidden="true"
+        data-intro-artwork
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{ opacity: 0.25 }}
+      >
         {artwork}
-        {/* Orb — a single stable instance; state + destination derive from auth
-            values so it never remounts (see note above). */}
-        {/* The shared app-layer orb docks here on the landing page. */}
-        <div
-          data-hero-orb
-          data-hero-reveal
-          className="absolute bottom-3 right-3"
-          style={hidden}
+      </div>
+      <div className="flex justify-end px-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8">
+        <Link
+          href={destination}
+          replace
+          onNavigate={() => { navigatedRef.current = true; }}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border bg-background/80 px-4 font-sans text-sm text-text-primary outline-none transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-hugo-cyan"
         >
-          <OrbSlot state="idle" size={96} onClick={() => router.push(orbHref)} />
-        </div>
+          {finished ? "Continue" : "Skip intro"}
+          <ArrowRight aria-hidden="true" className="size-4" />
+        </Link>
       </div>
-
-      <div className="flex min-w-0 flex-1 flex-col items-center gap-6 lg:items-start lg:gap-8">
-        {/* Eyebrow */}
-        <div data-hero-eyebrow data-hero-reveal style={hidden}>
-          <span className="inline-flex items-center gap-2 font-mono text-sm tracking-widest text-text-secondary">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-hugo-cyan" />
-            REALTIME · VOICE-NATIVE
-          </span>
-        </div>
-
-        {/* Headline + copy */}
-        <div className="flex max-w-2xl flex-col items-center gap-5 lg:items-start">
-          <HeadlineWords />
+      <div className="mt-auto flex justify-center pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div aria-hidden="true" className="h-px w-16 overflow-hidden bg-border-strong motion-reduce:hidden">
           <div
-            data-hero-copy
-            data-hero-reveal
-            className="flex flex-col items-center gap-4 lg:items-start"
-            style={hidden}
-          >
-            <p className="text-balance text-lg leading-relaxed text-text-primary sm:text-xl">
-              Your Bid Delivery Orchestrator.
-            </p>
-            <p className="max-w-md text-pretty text-base leading-relaxed text-text-secondary">
-              Bring your tender documents. Find the requirements, question the
-              gaps, and build a source-grounded response. By voice or in chat.
-            </p>
-          </div>
-        </div>
-
-        {/* CTAs — auth-gated. `authed` derives from the server-resolved value
-            during the loading window, so this renders the correct destination on
-            first paint (no flash) and stays hydration-stable. */}
-        <div data-hero-cta data-hero-reveal className="w-full" style={hidden}>
-          {authed ? (
-            <div className="flex flex-col items-center gap-3 lg:items-start">
-              <CtaRow talkHref="/chat" textHref="/chat" showSignInHint={false} />
-              <Link href="/workspace" className={`${buttonVariants({ variant: "ghost" })} min-h-11`}>Open document workspace <ArrowRight aria-hidden className="size-4" /></Link>
-            </div>
-          ) : (
-            <CtaRow
-              talkHref={guestHref}
-              textHref={guestHref}
-              showSignInHint={!guestPreview}
-            />
-          )}
+            data-intro-progress
+            className="h-full w-full origin-left bg-text-primary"
+            style={{ transform: "scaleX(0)" }}
+          />
         </div>
       </div>
-    </section>
+      <p role="status" className="sr-only">
+        {finished ? (authed ? "Opening your agent." : "Opening sign in.") : "ALIAS BDO introduction."}
+      </p>
+    </main>
   );
 }

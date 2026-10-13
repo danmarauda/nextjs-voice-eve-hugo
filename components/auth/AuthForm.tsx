@@ -119,6 +119,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Name</Label>
             <Input
+              className="h-12 text-base"
               id="name"
               name="name"
               type="text"
@@ -132,6 +133,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
+            className="h-12 text-base"
             id="email"
             name="email"
             type="email"
@@ -146,6 +148,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="password">Password</Label>
           <Input
+            className="h-12 text-base"
             id="password"
             name="password"
             type="password"
@@ -183,7 +186,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         {copy.switchPrompt}{" "}
         <Link
           href={switchHref}
-          className="font-medium text-hugo-cyan outline-none transition-opacity hover:opacity-80 focus-visible:underline"
+          className="inline-flex min-h-11 items-center font-medium text-hugo-cyan outline-none transition-opacity hover:opacity-80 focus-visible:underline"
         >
           {copy.switchLabel}
         </Link>

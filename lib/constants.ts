@@ -8,10 +8,10 @@
  * routes) are read in server code; never import a secret here.
  */
 
-export const APP_NAME = "Hugo";
-export const APP_TAGLINE = "A realtime AI voice agent built on the Vercel AI stack.";
+export const APP_NAME = "ALIAS BDO";
+export const APP_TAGLINE = "Bid Delivery Orchestrator";
 export const APP_DESCRIPTION =
-  "Speak naturally. Interrupt freely. Continue in chat. Everything syncs in real time.";
+  "Turn bid documents into grounded answers and working drafts. Your private workspace, connected to voice and chat.";
 
 /** Default admin — granted the admin role automatically on first sign-in. */
 export const DEFAULT_ADMIN_EMAIL = (

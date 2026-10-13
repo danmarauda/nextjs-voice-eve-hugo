@@ -66,7 +66,7 @@ const FEATURES: Feature[] = [
     label: "VOICE",
     title: "Realtime voice",
     description:
-      "Sub-second, full-duplex speech over AI Gateway. Barge-in any time — Hugo stops, listens, and adapts mid-thought.",
+      "Sub-second, full-duplex speech over AI Gateway. Barge-in any time — ALIAS BDO stops, listens, and adapts mid-thought.",
     icon: AudioLines,
     accent: "cyan",
   },

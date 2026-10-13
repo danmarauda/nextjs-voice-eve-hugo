@@ -52,7 +52,7 @@ function CtaRow({
           )}
         >
           <Mic className="size-4" aria-hidden="true" />
-          Talk to Hugo
+          Talk to ALIAS BDO
           <ArrowRight className="size-4" aria-hidden="true" />
         </Link>
         <Link
@@ -96,7 +96,7 @@ function HeadlineWords() {
         className="inline-block text-hugo-cyan text-glow will-change-transform"
         style={{ opacity: 0 }}
       >
-        Hugo.
+        ALIAS BDO.
       </span>
     </h1>
   );
@@ -235,11 +235,11 @@ export function Hero({
           style={hidden}
         >
           <p className="text-balance text-lg text-text-secondary sm:text-xl">
-            A realtime AI voice agent built on the Vercel AI stack.
+            Your Bid Delivery Orchestrator.
           </p>
           <p className="max-w-xl text-balance text-sm text-text-muted sm:text-base">
-            Speak naturally. Interrupt freely. Continue in chat. Everything syncs
-            in real time.
+            Bring your tender documents. Find the requirements, question the
+            gaps, and build a source-grounded response. By voice or in chat.
           </p>
         </div>
       </div>
@@ -249,7 +249,10 @@ export function Hero({
           first paint (no flash) and stays hydration-stable. */}
       <div data-hero-cta data-hero-reveal style={hidden}>
         {authed ? (
-          <CtaRow talkHref="/chat" textHref="/chat" showSignInHint={false} />
+          <div className="flex flex-col items-center gap-3">
+            <CtaRow talkHref="/chat" textHref="/chat" showSignInHint={false} />
+            <Link href="/workspace" className={`${buttonVariants({ variant: "ghost" })} min-h-11`}>Open document workspace <ArrowRight aria-hidden className="size-4" /></Link>
+          </div>
         ) : (
           <CtaRow
             talkHref={guestHref}

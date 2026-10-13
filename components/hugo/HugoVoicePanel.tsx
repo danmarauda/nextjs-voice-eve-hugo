@@ -174,7 +174,7 @@ export function HugoVoicePanel({
       await rt.toggleMic();
     } catch (err) {
       const message =
-        err instanceof Error && err.message ? err.message : "Couldn't connect to Hugo.";
+        err instanceof Error && err.message ? err.message : "Couldn't connect to ALIAS BDO.";
       toast.error(message);
       onFallbackToText?.();
     }
@@ -245,10 +245,10 @@ export function HugoVoicePanel({
             variant="primary"
             size="lg"
             onClick={() => void startSession()}
-            aria-label="Talk to Hugo"
+            aria-label="Talk to ALIAS BDO"
           >
             <Mic aria-hidden />
-            Talk to Hugo
+            Talk to ALIAS BDO
           </Button>
           <p className="text-xs font-mono text-text-muted">
             Tap the orb or the button to begin a voice session.

@@ -19,15 +19,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: `${APP_NAME} — Realtime AI voice agent`, template: `%s · ${APP_NAME}` },
-  description: APP_TAGLINE,
+  title: { default: `${APP_NAME} — ${APP_TAGLINE}`, template: `%s · ${APP_NAME}` },
+  description: "Bid Delivery Orchestrator. Process bid documents, find requirements, and prepare source-grounded drafts with voice and chat.",
   applicationName: APP_NAME,
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
   themeColor: "#050505",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

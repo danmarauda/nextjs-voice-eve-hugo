@@ -194,7 +194,7 @@ export function ConversationsClient() {
             Conversations
           </h1>
           <p className="text-sm text-text-secondary">
-            Everything you&apos;ve discussed with Hugo, in one place.
+            Everything you&apos;ve discussed with ALIAS BDO, in one place.
           </p>
         </div>
         <Button variant="primary" size="sm" onClick={handleNew} disabled={creating}>

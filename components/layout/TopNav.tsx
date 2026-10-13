@@ -9,6 +9,7 @@ import {
   LogOut,
   MessageSquare,
   MessagesSquare,
+  FolderOpen,
   Settings,
   Shield,
 } from "lucide-react";
@@ -30,6 +31,7 @@ interface MenuLink {
 
 const BASE_LINKS: MenuLink[] = [
   { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/workspace", label: "Document workspace", icon: FolderOpen },
   { href: "/conversations", label: "Conversations", icon: MessagesSquare },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

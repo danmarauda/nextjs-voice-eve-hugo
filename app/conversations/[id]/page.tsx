@@ -9,7 +9,7 @@ import { ConversationDetailClient } from "@/app/conversations/[id]/ConversationD
 
 export const metadata: Metadata = {
   title: "Conversation",
-  description: "A conversation with Hugo.",
+  description: "A conversation with ALIAS BDO.",
 };
 
 /**

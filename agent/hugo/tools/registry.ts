@@ -22,6 +22,26 @@ export interface ToolMeta {
 
 export const USER_TOOLS: ToolMeta[] = [
   {
+    name: "listWorkspaceDocuments",
+    description: "List private workspace source documents and working drafts.",
+    scope: "user", readOnly: true, requiresApproval: false,
+  },
+  {
+    name: "searchWorkspaceDocuments",
+    description: "Find relevant excerpts in the user's document workspace.",
+    scope: "user", readOnly: true, requiresApproval: false,
+  },
+  {
+    name: "readWorkspaceDocument",
+    description: "Read a bounded section of a private workspace document.",
+    scope: "user", readOnly: true, requiresApproval: false,
+  },
+  {
+    name: "createWorkspaceDraft",
+    description: "Save a new source-referenced working draft for human review; never submit a bid.",
+    scope: "user", readOnly: false, requiresApproval: false,
+  },
+  {
     name: "getCurrentUserProfile",
     description:
       "Get the signed-in user's profile and preferences (name, role, voice, theme).",

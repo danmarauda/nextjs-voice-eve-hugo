@@ -216,6 +216,24 @@ export default defineSchema({
     .index("by_user_type", ["userId", "type"])
     .index("by_user_key", ["userId", "key"]),
 
+  documents: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    kind: v.union(v.literal("source"), v.literal("draft")),
+    format: v.union(v.literal("pdf"), v.literal("txt"), v.literal("md"), v.literal("csv"), v.literal("json")),
+    characterCount: v.number(),
+    sourceDocumentIds: v.array(v.id("documents")),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  documentContents: defineTable({
+    userId: v.id("users"),
+    documentId: v.id("documents"),
+    content: v.string(),
+  })
+    .index("by_document", ["documentId"])
+    .searchIndex("search_content", { searchField: "content", filterFields: ["userId"] }),
+
   adminAuditLogs: defineTable({
     adminUserId: v.id("users"),
     action: v.string(),

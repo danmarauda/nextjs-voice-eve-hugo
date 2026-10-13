@@ -8,7 +8,7 @@ import { ConversationsClient } from "@/app/conversations/ConversationsClient";
 
 export const metadata: Metadata = {
   title: "Conversations",
-  description: "Your conversation history with Hugo.",
+  description: "Your conversation history with ALIAS BDO.",
 };
 
 /**

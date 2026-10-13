@@ -23,13 +23,15 @@ import { cn } from "@/lib/utils";
 export function HugoChatPanel({
   conversationId,
   initialMessages,
+  initialPrompt,
   className,
 }: {
   conversationId?: string;
   initialMessages?: UIMessage[];
+  initialPrompt?: string;
   className?: string;
 }) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialPrompt ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // The server creates a conversation on the first turn and returns its id via
@@ -69,7 +71,7 @@ export function HugoChatPanel({
       const message =
         err instanceof Error && err.message
           ? err.message
-          : "Hugo couldn't respond. Please try again.";
+          : "ALIAS BDO couldn't respond. Please try again.";
       toast.error(message);
     },
   });
@@ -87,6 +89,7 @@ export function HugoChatPanel({
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         submit();
@@ -108,7 +111,7 @@ export function HugoChatPanel({
           <>
             <Spinner />
             <span className="text-xs font-mono text-text-muted">
-              {status === "submitted" ? "Hugo is thinking…" : "Hugo is responding…"}
+              {status === "submitted" ? "ALIAS BDO is thinking…" : "ALIAS BDO is responding…"}
             </span>
           </>
         )}
@@ -130,8 +133,8 @@ export function HugoChatPanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Message Hugo…"
-          aria-label="Message Hugo"
+          placeholder="Message ALIAS BDO…"
+          aria-label="Message ALIAS BDO"
           rows={1}
           className="min-h-10 max-h-40 flex-1 border-0 bg-transparent focus-visible:ring-0 px-2 py-2"
         />

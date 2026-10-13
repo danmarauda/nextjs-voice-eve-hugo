@@ -254,7 +254,7 @@ export function SettingsClient() {
           Settings
         </h1>
         <p className="text-sm text-text-secondary">
-          Your profile, voice preferences, usage, and what Hugo remembers.
+          Your profile, voice preferences, usage, and what ALIAS BDO remembers.
         </p>
       </div>
 
@@ -312,7 +312,7 @@ export function SettingsClient() {
         <SectionHeading
           icon={Gauge}
           title="Preferences"
-          description="How Hugo looks and sounds for you."
+          description="How ALIAS BDO looks and sounds for you."
         />
         <CardContent className="flex flex-col gap-5">
           {/* Theme */}
@@ -343,7 +343,7 @@ export function SettingsClient() {
               {savingPref && <Spinner />}
             </div>
             <p className="text-xs text-text-muted">
-              The voice Hugo uses for new realtime sessions.
+              The voice ALIAS BDO uses for new realtime sessions.
             </p>
           </div>
 
@@ -417,7 +417,7 @@ export function SettingsClient() {
         <SectionHeading
           icon={Brain}
           title="Memory"
-          description="Facts and preferences Hugo carries between conversations. Private to you."
+          description="Facts and preferences ALIAS BDO carries between conversations. Private to you."
         />
         <CardContent className="flex flex-col gap-5">
           {/* Add form */}
@@ -485,7 +485,7 @@ export function SettingsClient() {
             </div>
           ) : memories.length === 0 ? (
             <p className="px-1 py-2 text-sm text-text-muted">
-              Hugo hasn&apos;t saved anything yet. Add a memory above, or it will
+              ALIAS BDO hasn&apos;t saved anything yet. Add a memory above, or it will
               learn as you talk.
             </p>
           ) : (

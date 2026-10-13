@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/misc";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to Hugo.",
+  description: "Sign in to ALIAS BDO.",
 };
 
 function AuthCardFallback() {
@@ -33,7 +33,7 @@ export default function SignInPage() {
         <AuthForm mode="signIn" />
       </Suspense>
       <p className="mt-8 text-center text-xs text-text-muted">
-        By continuing you agree to use Hugo responsibly.{" "}
+        By continuing you agree to use ALIAS BDO responsibly.{" "}
         <Link
           href="/"
           className="text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:underline"

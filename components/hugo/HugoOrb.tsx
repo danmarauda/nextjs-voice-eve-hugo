@@ -43,16 +43,16 @@ interface StateStyle {
 }
 
 const STATE_STYLE: Record<HugoOrbState, StateStyle> = {
-  idle: { label: "Hugo is idle", color: "var(--hugo-cyan)", glow: 0.45, dim: 1 },
-  auth_required: { label: "Sign in to talk to Hugo", color: "var(--text-muted)", glow: 0.2, dim: 0.6 },
-  connecting: { label: "Hugo is connecting", color: "var(--hugo-blue)", glow: 0.6, dim: 1 },
-  listening: { label: "Hugo is listening", color: "var(--hugo-cyan)", glow: 0.8, dim: 1 },
-  thinking: { label: "Hugo is thinking", color: "var(--hugo-blue)", glow: 0.7, dim: 1 },
-  speaking: { label: "Hugo is speaking", color: "var(--hugo-cyan)", glow: 1, dim: 1 },
-  interrupted: { label: "Hugo was interrupted", color: "var(--accent-magenta)", glow: 0.7, dim: 1 },
-  tool_running: { label: "Hugo is running a tool", color: "var(--accent-magenta)", glow: 0.8, dim: 1 },
-  error: { label: "Hugo hit an error", color: "var(--error)", glow: 0.75, dim: 1 },
-  sleeping: { label: "Hugo is sleeping", color: "var(--text-muted)", glow: 0.15, dim: 0.5 },
+  idle: { label: "ALIAS BDO is idle", color: "var(--hugo-cyan)", glow: 0.45, dim: 1 },
+  auth_required: { label: "Sign in to talk to ALIAS BDO", color: "var(--text-muted)", glow: 0.2, dim: 0.6 },
+  connecting: { label: "ALIAS BDO is connecting", color: "var(--hugo-blue)", glow: 0.6, dim: 1 },
+  listening: { label: "ALIAS BDO is listening", color: "var(--hugo-cyan)", glow: 0.8, dim: 1 },
+  thinking: { label: "ALIAS BDO is thinking", color: "var(--hugo-blue)", glow: 0.7, dim: 1 },
+  speaking: { label: "ALIAS BDO is speaking", color: "var(--hugo-cyan)", glow: 1, dim: 1 },
+  interrupted: { label: "ALIAS BDO was interrupted", color: "var(--accent-magenta)", glow: 0.7, dim: 1 },
+  tool_running: { label: "ALIAS BDO is running a tool", color: "var(--accent-magenta)", glow: 0.8, dim: 1 },
+  error: { label: "ALIAS BDO hit an error", color: "var(--error)", glow: 0.75, dim: 1 },
+  sleeping: { label: "ALIAS BDO is sleeping", color: "var(--text-muted)", glow: 0.15, dim: 0.5 },
 };
 
 const AUDIO_STATES = new Set<HugoOrbState>(["listening", "speaking"]);

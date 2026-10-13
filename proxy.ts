@@ -15,6 +15,7 @@ import {
 const isSignInPage = createRouteMatcher(["/sign-in", "/sign-up"]);
 const isProtectedRoute = createRouteMatcher([
   "/chat(.*)",
+  "/workspace(.*)",
   "/conversations(.*)",
   "/settings(.*)",
   "/admin(.*)",

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/misc";
 
 export const metadata: Metadata = {
   title: "Get started",
-  description: "Create your Hugo account.",
+  description: "Create your ALIAS BDO account.",
 };
 
 function AuthCardFallback() {
@@ -34,7 +34,7 @@ export default function SignUpPage() {
         <AuthForm mode="signUp" />
       </Suspense>
       <p className="mt-8 text-center text-xs text-text-muted">
-        By continuing you agree to use Hugo responsibly.{" "}
+        By continuing you agree to use ALIAS BDO responsibly.{" "}
         <Link
           href="/"
           className="text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:underline"

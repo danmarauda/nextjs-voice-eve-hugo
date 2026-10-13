@@ -33,7 +33,7 @@ describe("voice session connection lifecycle", () => {
     expect(controls.button("Connect voice session")).toBeUndefined();
     expect(controls.button("End voice session")).toBeUndefined();
     expect(controls.button("Unmute microphone")).toContain('disabled=""');
-    expect(controls.button("Interrupt Hugo")).toContain('disabled=""');
+    expect(controls.button("Interrupt ALIAS BDO")).toContain('disabled=""');
     expect(controls.button("Switch to text chat")).toBeDefined();
     expect(controls.button("Switch to text chat")).not.toContain('disabled=""');
   });

@@ -10,7 +10,7 @@ import { ChatClient } from "@/app/chat/ChatClient";
 
 export const metadata: Metadata = {
   title: "Console",
-  description: "Talk to Hugo by voice or text.",
+  description: "Talk to ALIAS BDO by voice or text.",
 };
 
 /**

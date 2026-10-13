@@ -173,9 +173,9 @@ describe("lib/utils", () => {
 describe("agent/hugo/tools/registry", () => {
   const ALLOWED_KEYS = ["name", "description", "requiresApproval"].sort();
 
-  test("clientSafeTools('user') returns exactly the 5 user tools", () => {
+  test("clientSafeTools('user') returns the 9 user tools including document workspace tools", () => {
     const tools = clientSafeTools("user");
-    expect(tools).toHaveLength(5);
+    expect(tools).toHaveLength(9);
     expect(tools).toHaveLength(USER_TOOLS.length);
     expect(tools.map((t) => t.name).sort()).toEqual(
       USER_TOOLS.map((t) => t.name).sort(),

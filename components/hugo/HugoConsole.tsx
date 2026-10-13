@@ -19,12 +19,14 @@ type Mode = "voice" | "text";
 
 export function HugoConsole({
   conversationId,
+  initialPrompt,
   className,
 }: {
   conversationId?: string;
+  initialPrompt?: string;
   className?: string;
 }) {
-  const [mode, setMode] = useState<Mode>("voice");
+  const [mode, setMode] = useState<Mode>(initialPrompt ? "text" : "voice");
 
   const fallbackToText = useCallback(() => setMode("text"), []);
 
@@ -34,7 +36,7 @@ export function HugoConsole({
         "panel relative flex flex-col gap-5 overflow-hidden rounded-lg p-5 sm:p-6",
         className,
       )}
-      aria-label="Hugo console"
+      aria-label="ALIAS BDO console"
     >
       {/* Ambient grid backdrop */}
       <div className="bg-grid bg-grid-fade pointer-events-none absolute inset-0 -z-10 opacity-50" />
@@ -85,7 +87,7 @@ export function HugoConsole({
           aria-labelledby="hugo-tab-text"
           className="animate-rise min-h-[24rem]"
         >
-          <HugoChatPanel conversationId={conversationId} className="min-h-[24rem]" />
+          <HugoChatPanel conversationId={conversationId} initialPrompt={initialPrompt} className="min-h-[24rem]" />
         </div>
       )}
     </section>

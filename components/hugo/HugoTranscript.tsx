@@ -142,7 +142,7 @@ export function HugoTranscript({
                   />
                 )}
                 <span className="text-[0.65rem] font-mono uppercase tracking-wider text-text-muted">
-                  {isUser ? "You" : isAssistant ? "Hugo" : turn.role}
+                  {isUser ? "You" : isAssistant ? "ALIAS BDO" : turn.role}
                 </span>
                 {turn.createdAt != null && (
                   <span className="text-[0.65rem] font-mono text-text-muted/70">

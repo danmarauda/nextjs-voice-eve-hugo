@@ -59,6 +59,8 @@ export function ChatClient() {
     isSigningOut,
   } = useAuthTransition();
   const activeId = searchParams.get("c") ?? undefined;
+  const requestedDocument = searchParams.get("document");
+  const documentId = requestedDocument && /^[a-z0-9]{20,64}$/.test(requestedDocument) ? requestedDocument : undefined;
 
   useEffect(() => {
     if (!isSigningOut && !isAuthLoading && !isAuthenticated) {
@@ -146,8 +148,9 @@ export function ChatClient() {
           </Button>
         </div>
         <HugoConsole
-          key={activeId ?? "new"}
+          key={`${activeId ?? "new"}:${documentId ?? ""}`}
           conversationId={activeId}
+          initialPrompt={documentId ? `Read workspace document ${documentId} and identify its bid requirements, deadlines, and open questions. Cite the source and state which sections you reviewed.` : undefined}
           className="animate-rise"
         />
       </div>

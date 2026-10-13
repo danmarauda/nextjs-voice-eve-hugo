@@ -85,8 +85,8 @@ export default async function LandingPage() {
                 One agent. Voice, text, memory, and oversight.
               </h2>
               <p className="max-w-2xl text-balance text-sm text-text-secondary">
-                Hugo runs as a single coherent system — every modality shares the
-                same context, and every session is observable.
+                ALIAS BDO connects your bid documents with voice, text, and
+                source-grounded drafts in a private workspace.
               </p>
             </div>
             <FeatureGrid />

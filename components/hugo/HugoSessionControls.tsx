@@ -111,7 +111,7 @@ export function HugoSessionControls({
           size="md"
           onClick={onInterrupt}
           disabled={!canInterrupt}
-          aria-label="Interrupt Hugo"
+          aria-label="Interrupt ALIAS BDO"
         >
           <X aria-hidden />
           Interrupt

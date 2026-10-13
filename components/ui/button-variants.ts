@@ -29,10 +29,11 @@ export function buttonVariants({ variant, size }: ButtonVariantProps = {}) {
       size: size === "icon" ? "md" : (size ?? "md"),
       isIconOnly: size === "icon",
     }),
-    "rounded-md [&_svg]:size-4 [&_svg]:shrink-0",
-    resolvedVariant === "default" &&
-      "bg-text-primary text-background hover:bg-text-primary/90",
-    resolvedVariant === "primary" && "shadow-[0_0_24px_-6px_var(--glow)]",
-    size === "icon" && "size-9 min-w-9",
+    "glass-button gap-2 font-sans [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:stroke-[1.5]",
+    resolvedVariant === "primary" && "glass-button--primary",
+    resolvedVariant === "ghost" && "glass-button--ghost",
+    resolvedVariant === "destructive" && "glass-button--destructive",
+    size === "lg" && "min-h-12 text-lg",
+    size === "icon" && "size-11 min-w-11 p-0",
   );
 }

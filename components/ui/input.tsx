@@ -11,7 +11,7 @@ export const Input = React.forwardRef<
   <HeroInput
     ref={ref}
     className={cn(
-      "flex h-10 w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder:text-text-muted",
+      "glass-field flex h-12 w-full px-4 py-3 font-sans text-base text-text-primary placeholder:text-text-secondary/70",
       "outline-none transition-colors focus-visible:border-hugo-cyan/50 focus-visible:ring-2 focus-visible:ring-hugo-cyan/20",
       "disabled:cursor-not-allowed disabled:opacity-50",
       className,
@@ -28,7 +28,7 @@ export const Textarea = React.forwardRef<
   <HeroTextArea
     ref={ref}
     className={cn(
-      "flex min-h-20 w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-text-primary placeholder:text-text-muted",
+      "glass-field flex min-h-20 w-full px-4 py-3 font-sans text-base text-text-primary placeholder:text-text-secondary/70",
       "outline-none transition-colors focus-visible:border-hugo-cyan/50 focus-visible:ring-2 focus-visible:ring-hugo-cyan/20",
       "disabled:cursor-not-allowed disabled:opacity-50 resize-none scroll-thin",
       className,
@@ -41,7 +41,7 @@ Textarea.displayName = "Textarea";
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <HeroLabel
-      className={cn("text-sm font-medium text-text-secondary", className)}
+      className={cn("font-sans text-base font-normal text-text-secondary", className)}
       {...props}
     />
   );

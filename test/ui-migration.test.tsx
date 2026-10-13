@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -11,8 +11,33 @@ import { Switch } from "@/components/ui/switch";
 import { Select } from "@/components/ui/select";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { HugoConsole } from "@/components/hugo/HugoConsole";
+
+vi.mock("@/components/hugo/HugoVoicePanel", () => ({
+  HugoVoicePanel: () => <div>Voice panel fixture</div>,
+}));
+vi.mock("@/components/hugo/HugoChatPanel", () => ({
+  HugoChatPanel: ({ initialPrompt }: { initialPrompt?: string }) => <div>Text panel fixture: {initialPrompt}</div>,
+}));
 
 describe("HeroUI migration compatibility", () => {
+  test("renders linked HeroUI tabs and only mounts the active voice panel", () => {
+    const html = renderToStaticMarkup(<HugoConsole />);
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('aria-label="Conversation mode"');
+    expect(html).toContain('role="tabpanel"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain("glass-tabs");
+    expect(html).toContain("Voice panel fixture");
+    expect(html).not.toContain("Text panel fixture");
+  });
+
+  test("opens document prompts in text mode without mounting voice capture", () => {
+    const html = renderToStaticMarkup(<HugoConsole initialPrompt="Review the bid" />);
+    expect(html).toContain("Text panel fixture: Review the bid");
+    expect(html).not.toContain("Voice panel fixture");
+  });
+
   test("maps disabled, submit, icon and tooltip button props", () => {
     const html = renderToStaticMarkup(
       <Button type="submit" disabled size="icon" variant="destructive" title="Delete" aria-label="Delete">Delete</Button>,
@@ -23,12 +48,16 @@ describe("HeroUI migration compatibility", () => {
     expect(html).toContain('aria-label="Delete"');
     expect(html).toContain("button--danger-soft");
     expect(html).toContain("button--icon-only");
+    expect(html).toContain("glass-button--destructive");
+    expect(html).toContain("size-11");
   });
 
   test("keeps the button style helper callable during server rendering", () => {
     const html = renderToStaticMarkup(<a href="/chat" className={buttonVariants({ variant: "primary", size: "lg" })}>Open Hugo</a>);
     expect(html).toContain("button--primary");
     expect(html).toContain("button--lg");
+    expect(html).toContain("glass-button--primary");
+    expect(buttonVariants({ variant: "ghost" })).toContain("glass-button--ghost");
   });
 
   test("preserves native form names, validation, labels and values", () => {
@@ -47,6 +76,8 @@ describe("HeroUI migration compatibility", () => {
     expect(html).toContain('minLength="8"');
     expect(html).toContain('disabled=""');
     expect(html).toContain("Hello Hugo</textarea>");
+    expect(html).toContain("glass-field");
+    expect(html).toContain("text-base");
   });
 
   test("keeps card headings, badge content and loading semantics", () => {
@@ -55,6 +86,7 @@ describe("HeroUI migration compatibility", () => {
     );
     expect(html).toMatch(/<h3[^>]*>Preferences<\/h3>/);
     expect(html).toContain('data-slot="card"');
+    expect(html).toContain("liquid-glass");
     expect(html).toContain("Active");
     expect(html).toContain('aria-label="Loading"');
     expect(html).toContain('aria-orientation="vertical"');

@@ -22,11 +22,11 @@ export function Switch({
       isSelected={checked}
       onChange={onCheckedChange}
       isDisabled={disabled}
-      className={cn("shrink-0", danger && "[--accent:var(--warning)]")}
+      className={cn("min-h-11 min-w-11 shrink-0", danger && "[--accent:var(--warning)]")}
     >
       <HeroSwitch.Content>
-        <HeroSwitch.Control>
-          <HeroSwitch.Thumb />
+        <HeroSwitch.Control className="glass-switch-control">
+          <HeroSwitch.Thumb className="glass-switch-thumb" />
         </HeroSwitch.Control>
       </HeroSwitch.Content>
     </HeroSwitch>

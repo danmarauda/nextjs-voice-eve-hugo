@@ -23,14 +23,14 @@ export function Select({ id, label, value, options, onValueChange, disabled, cla
       className={cn("w-full", className)}
     >
       <Label>{label}</Label>
-      <HeroSelect.Trigger className="h-10 rounded-md">
+      <HeroSelect.Trigger className="glass-field min-h-12 font-sans text-base">
         <HeroSelect.Value />
         <HeroSelect.Indicator />
       </HeroSelect.Trigger>
-      <HeroSelect.Popover>
+      <HeroSelect.Popover className="liquid-glass overscroll-contain">
         <ListBox>
           {options.map((option) => (
-            <ListBox.Item key={option.value} id={option.value} textValue={option.label}>
+            <ListBox.Item key={option.value} id={option.value} textValue={option.label} className="min-h-11 rounded-xl font-sans text-base">
               {option.label}
               <ListBox.ItemIndicator />
             </ListBox.Item>

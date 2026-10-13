@@ -126,7 +126,7 @@ export function HugoChatPanel({
           e.preventDefault();
           submit();
         }}
-        className="flex items-end gap-2 rounded-lg border border-border bg-surface/60 p-2"
+        className="glass-composer flex items-end gap-2 p-2"
       >
         <Textarea
           ref={textareaRef}

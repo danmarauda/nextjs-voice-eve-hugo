@@ -91,7 +91,7 @@ export function Hero({
           href={destination}
           replace
           onNavigate={() => { navigatedRef.current = true; }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border bg-background/80 px-4 font-sans text-sm text-text-primary outline-none transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-hugo-cyan"
+          className="glass-button inline-flex items-center justify-center gap-2 px-5 font-sans outline-none"
         >
           {finished ? "Continue" : "Skip intro"}
           <ArrowRight aria-hidden="true" className="size-4" />

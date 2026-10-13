@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithRef } from "react";
+import { Dropdown } from "@heroui/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Authenticated, Unauthenticated, AuthLoading, useQuery } from "convex/react";
@@ -15,8 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import { cn, initials } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { initials } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Avatar, Separator } from "@/components/ui/misc";
 import { Logo } from "@/components/layout/Logo";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -37,9 +38,8 @@ const BASE_LINKS: MenuLink[] = [
 ];
 
 /**
- * UserMenu — a minimal, accessible dropdown built from scratch (button + an
- * absolutely-positioned panel) that closes on outside click and Escape. Shows
- * the user's identity, app links, an admin link when relevant, and sign out.
+ * UserMenu — HeroUI handles focus, keyboard navigation, dismissal, and portals.
+ * Shows identity, app links, an admin link when relevant, and sign out.
  */
 function UserMenu() {
   const router = useRouter();
@@ -55,29 +55,6 @@ function UserMenu() {
     canRunProtectedQueries ? {} : "skip",
   );
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  const close = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) close();
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        close();
-        triggerRef.current?.focus();
-      }
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open, close]);
 
   const name = me?.name ?? me?.email ?? "Account";
   const label = initials(me?.name, me?.email);
@@ -87,7 +64,7 @@ function UserMenu() {
 
   async function handleSignOut() {
     if (isSigningOut) return;
-    close();
+    setOpen(false);
     beginSignOut();
     try {
       await signOut();
@@ -100,70 +77,56 @@ function UserMenu() {
   }
 
   return (
-    <div ref={containerRef} className="relative">
-      <button
-        ref={triggerRef}
+    <Dropdown isOpen={open} onOpenChange={setOpen}>
+      <Button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
+        variant="ghost"
         aria-label="Open account menu"
-        className={cn(
-          "flex items-center gap-2 rounded-full border border-border bg-surface-elevated/60 py-1 pl-1 pr-2.5 transition-colors outline-none hover:border-border-strong focus-visible:ring-2 focus-visible:ring-hugo-cyan/60",
-          open && "border-border-strong",
-        )}
+        disabled={isSigningOut}
+        className="px-1.5 sm:pr-3"
       >
-        <Avatar name={label} src={me?.image} className="size-7 text-[11px]" />
-        <span className="hidden max-w-[12ch] truncate text-sm text-text-secondary sm:block">
+        <Avatar name={label} src={me?.image} className="size-7 text-sm" />
+        <span className="hidden max-w-[12ch] truncate text-base text-text-secondary sm:block">
           {name}
         </span>
-      </button>
-
-      {open && (
-        <div
-          role="menu"
-          aria-label="Account"
-          className="panel animate-rise absolute right-0 top-[calc(100%+0.5rem)] z-50 w-60 overflow-hidden p-1.5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.6)]"
-        >
-          <div className="px-2.5 py-2">
-            <p className="truncate text-sm font-medium text-text-primary">
-              {me?.name ?? "Signed in"}
-            </p>
-            {me?.email && (
-              <p className="truncate font-mono text-xs text-text-muted">
-                {me.email}
-              </p>
-            )}
-          </div>
-          <Separator className="my-1" />
-          <div className="flex flex-col">
-            {links.map(({ href, label: linkLabel, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                role="menuitem"
-                onClick={close}
-                className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-text-secondary transition-colors outline-none hover:bg-surface-elevated hover:text-text-primary focus-visible:bg-surface-elevated focus-visible:text-text-primary"
-              >
-                <Icon className="size-4 shrink-0 text-text-muted" />
-                {linkLabel}
-              </Link>
-            ))}
-          </div>
-          <Separator className="my-1" />
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-text-secondary transition-colors outline-none hover:bg-error/10 hover:text-error focus-visible:bg-error/10 focus-visible:text-error"
-          >
-            <LogOut className="size-4 shrink-0" />
-            {isSigningOut ? "Signing out..." : "Sign out"}
-          </button>
+      </Button>
+      <Dropdown.Popover placement="bottom end" className="liquid-glass w-64 overscroll-contain p-2">
+        <div className="px-3 py-2">
+          <p className="truncate text-base text-text-primary">{me?.name ?? "Signed in"}</p>
+          {me?.email && <p className="truncate text-sm text-text-secondary">{me.email}</p>}
         </div>
-      )}
-    </div>
+        <Separator className="my-1" />
+        <Dropdown.Menu aria-label="Account">
+          <Dropdown.Section>
+            {links.map(({ href, label: linkLabel, icon: Icon }) => (
+              <Dropdown.Item
+                key={href}
+                id={href}
+                href={href}
+                textValue={linkLabel}
+                className="min-h-11 rounded-2xl font-sans text-base"
+                render={(props) => <Link {...(props as ComponentPropsWithRef<"a">)} href={href} />}
+              >
+                <Icon aria-hidden className="size-4 shrink-0 stroke-[1.5] text-text-secondary" />
+                {linkLabel}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Section>
+          <Separator />
+          <Dropdown.Item
+            id="sign-out"
+            textValue="Sign out"
+            variant="danger"
+            isDisabled={isSigningOut}
+            onAction={() => { void handleSignOut(); }}
+            className="min-h-11 rounded-2xl font-sans text-base"
+          >
+            <LogOut aria-hidden className="size-4 shrink-0 stroke-[1.5]" />
+            {isSigningOut ? "Signing out..." : "Sign out"}
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
   );
 }
 
@@ -203,10 +166,10 @@ export function TopNav() {
   }, [reducedMotion]);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <header className="liquid-glass sticky top-0 z-40 w-full rounded-none border-x-0 border-t-0">
       <div
         ref={rowRef}
-        className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
+        className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6"
       >
         <Logo />
         <nav className="flex items-center gap-2" aria-label="Account and theme">
@@ -218,7 +181,7 @@ export function TopNav() {
           <AuthLoading>
             <div
               aria-hidden
-              className="size-9 animate-pulse rounded-full border border-border bg-surface-elevated/60"
+              className="size-11 animate-pulse rounded-full border border-border bg-surface-elevated/60"
             />
           </AuthLoading>
           <Authenticated>

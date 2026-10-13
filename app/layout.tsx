@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Abel, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
@@ -8,9 +8,11 @@ import { AppToaster } from "@/components/providers/AppToaster";
 import { OrbStageProvider } from "@/components/hugo/orb-stage";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const abel = Abel({
+  variable: "--font-abel",
   subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -40,7 +42,7 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} h-full bg-background font-sans antialiased`}
+        className={`${abel.variable} ${geistMono.variable} h-full bg-background font-sans antialiased`}
       >
         <body className="min-h-full">
           <ThemeProvider>

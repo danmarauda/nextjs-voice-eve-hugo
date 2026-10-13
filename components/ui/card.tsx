@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export function Card({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <HeroCard
-      className={cn("gap-0 rounded-lg border border-border bg-surface/60 p-0 text-text-primary backdrop-blur-sm", className)}
+      className={cn("liquid-glass gap-0 p-0 text-text-primary", className)}
       {...props}
     >
       {children}

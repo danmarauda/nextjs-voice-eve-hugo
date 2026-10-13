@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { AudioLines, MessageSquare } from "lucide-react";
+import { Tabs } from "@heroui/react";
 import { HugoVoicePanel } from "@/components/hugo/HugoVoicePanel";
 import { HugoChatPanel } from "@/components/hugo/HugoChatPanel";
 import { cn } from "@/lib/utils";
@@ -42,88 +43,42 @@ export function HugoConsole({
       <div className="bg-grid bg-grid-fade pointer-events-none absolute inset-0 -z-10 opacity-50" />
 
       {/* Segmented mode control */}
-      <div
-        role="tablist"
-        aria-label="Conversation mode"
-        className="flex w-full max-w-xs self-center rounded-lg border border-border bg-surface/60 p-1"
+      <Tabs
+        selectedKey={mode}
+        onSelectionChange={(key) => {
+          if (key === "voice" || key === "text") setMode(key);
+        }}
+        keyboardActivation="manual"
+        className="w-full gap-5"
       >
-        <SegmentButton
-          active={mode === "voice"}
-          onClick={() => setMode("voice")}
-          id="hugo-tab-voice"
-          controls="hugo-panel-voice"
-        >
-          <AudioLines aria-hidden className="size-4" />
-          Voice
-        </SegmentButton>
-        <SegmentButton
-          active={mode === "text"}
-          onClick={() => setMode("text")}
-          id="hugo-tab-text"
-          controls="hugo-panel-text"
-        >
-          <MessageSquare aria-hidden className="size-4" />
-          Text
-        </SegmentButton>
-      </div>
+        <Tabs.ListContainer className="w-full max-w-xs self-center">
+          <Tabs.List aria-label="Conversation mode" className="glass-tabs w-full">
+            <Tabs.Tab id="voice" className="glass-tab gap-2">
+              <AudioLines aria-hidden className="size-4 stroke-[1.5]" />
+              Voice
+            </Tabs.Tab>
+            <Tabs.Tab id="text" className="glass-tab gap-2">
+              <MessageSquare aria-hidden className="size-4 stroke-[1.5]" />
+              Text
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
 
-      {/* Panels */}
-      {mode === "voice" ? (
-        <div
-          role="tabpanel"
-          id="hugo-panel-voice"
-          aria-labelledby="hugo-tab-voice"
-          className="animate-rise"
-        >
-          <HugoVoicePanel
-            conversationId={conversationId}
-            onFallbackToText={fallbackToText}
-          />
-        </div>
-      ) : (
-        <div
-          role="tabpanel"
-          id="hugo-panel-text"
-          aria-labelledby="hugo-tab-text"
-          className="animate-rise min-h-[24rem]"
-        >
-          <HugoChatPanel conversationId={conversationId} initialPrompt={initialPrompt} className="min-h-[24rem]" />
-        </div>
-      )}
+        {/* Panels — inactive content unmounts so voice capture cannot continue offscreen. */}
+        <Tabs.Panel id="voice" className="p-0">
+          {mode === "voice" && (
+            <HugoVoicePanel
+              conversationId={conversationId}
+              onFallbackToText={fallbackToText}
+            />
+          )}
+        </Tabs.Panel>
+        <Tabs.Panel id="text" className="min-h-[24rem] p-0">
+          {mode === "text" && (
+            <HugoChatPanel conversationId={conversationId} initialPrompt={initialPrompt} className="min-h-[24rem]" />
+          )}
+        </Tabs.Panel>
+      </Tabs>
     </section>
-  );
-}
-
-function SegmentButton({
-  active,
-  onClick,
-  id,
-  controls,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  id: string;
-  controls: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      id={id}
-      aria-controls={controls}
-      aria-selected={active}
-      onClick={onClick}
-      className={cn(
-        "flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all outline-none",
-        "focus-visible:ring-2 focus-visible:ring-hugo-cyan/60",
-        active
-          ? "bg-surface-elevated text-text-primary shadow-[0_0_20px_-8px_var(--hugo-cyan)]"
-          : "text-text-secondary hover:text-text-primary",
-      )}
-    >
-      {children}
-    </button>
   );
 }

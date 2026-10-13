@@ -64,7 +64,7 @@ export function HugoSessionControls({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-4 rounded-lg border border-border bg-surface/50 px-4 py-3",
+        "glass-composer flex flex-col items-center gap-4 px-4 py-4",
         className,
       )}
     >

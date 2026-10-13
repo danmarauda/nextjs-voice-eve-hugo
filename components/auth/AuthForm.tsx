@@ -7,6 +7,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { toast } from "sonner";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/misc";
 import { OrbSlot } from "@/components/hugo/OrbSlot";
@@ -105,13 +106,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   })();
 
   return (
-    <div className="panel animate-rise w-full max-w-sm p-7 sm:p-8">
+    <Card className="animate-rise w-full max-w-sm rounded-[2rem] p-7 sm:p-8">
       <div className="flex flex-col items-center text-center">
         <OrbSlot state="idle" size={72} />
-        <h1 className="mt-5 text-lg font-semibold tracking-tight text-text-primary">
+        <h1 className="mt-5 font-sans text-[1.75rem] leading-tight font-normal text-balance text-text-primary">
           {copy.title}
         </h1>
-        <p className="mt-1.5 text-sm text-text-secondary">{copy.subtitle}</p>
+        <p className="mt-2 text-base leading-relaxed text-pretty text-text-secondary">{copy.subtitle}</p>
       </div>
 
       <form onSubmit={onSubmit} className="mt-7 flex flex-col gap-4">
@@ -159,7 +160,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             disabled={submitting}
           />
           {mode === "signUp" && (
-            <p className="text-xs text-text-muted">At least 8 characters.</p>
+            <p className="text-sm text-text-secondary">At least 8 characters.</p>
           )}
         </div>
 
@@ -173,7 +174,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         >
           {submitting ? (
             <>
-              <Spinner className="border-black/30 border-t-black" />
+              <Spinner className="text-text-primary" />
               {copy.pending}
             </>
           ) : (
@@ -182,7 +183,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-text-secondary">
+      <p className="mt-6 text-center text-base text-text-secondary">
         {copy.switchPrompt}{" "}
         <Link
           href={switchHref}
@@ -191,6 +192,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           {copy.switchLabel}
         </Link>
       </p>
-    </div>
+    </Card>
   );
 }

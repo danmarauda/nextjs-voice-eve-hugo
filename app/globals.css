@@ -29,7 +29,14 @@
   --grid-line: rgba(0, 0, 0, 0.035);
   --glow: rgba(8, 145, 178, 0.18);
 
-  --radius: 0.75rem;
+  --radius: 1.5rem;
+  --glass-light: #ffffff;
+  --glass-shade: #000000;
+  --glass-fill: color-mix(in srgb, var(--surface) 64%, transparent);
+  --glass-edge: color-mix(in srgb, var(--text-primary) 16%, transparent);
+  --glass-reflection: color-mix(in srgb, var(--glass-light) 82%, transparent);
+  --glass-shadow: color-mix(in srgb, var(--glass-shade) 12%, transparent);
+  --glass-field: color-mix(in srgb, var(--surface) 46%, transparent);
 }
 
 .dark {
@@ -52,6 +59,12 @@
 
   --grid-line: rgba(255, 255, 255, 0.04);
   --glow: rgba(103, 232, 249, 0.22);
+
+  --glass-fill: color-mix(in srgb, var(--surface-elevated) 54%, transparent);
+  --glass-edge: color-mix(in srgb, var(--glass-light) 18%, transparent);
+  --glass-reflection: color-mix(in srgb, var(--glass-light) 30%, transparent);
+  --glass-shadow: color-mix(in srgb, var(--glass-shade) 36%, transparent);
+  --glass-field: color-mix(in srgb, var(--background) 28%, transparent);
 }
 
 :root,
@@ -111,12 +124,14 @@
   --radius-md: calc(var(--radius) - 0.25rem);
   --radius-sm: calc(var(--radius) - 0.375rem);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-abel), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
 }
 
-* {
-  border-color: var(--border);
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 html {
@@ -133,6 +148,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-synthesis: none;
+  line-height: 1.5;
 }
 
 /* Ambient command-surface grid background. */
@@ -148,12 +165,178 @@ body {
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
 }
 
-/* Subtle glass panel used across dashboards and panels. */
-.panel {
-  background: color-mix(in oklab, var(--surface) 92%, transparent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(12px);
+/* Glass panels share the same material as controls, with quieter reflections. */
+@layer components {
+  .panel,
+  .liquid-glass {
+    color: var(--text-primary);
+    background:
+      linear-gradient(145deg, color-mix(in srgb, var(--glass-light) 9%, transparent), transparent 42%, color-mix(in srgb, var(--glass-light) 3%, transparent)),
+      var(--glass-fill);
+    border: 1px solid var(--glass-edge);
+    border-radius: var(--radius);
+    box-shadow:
+      inset 0 1px 0 var(--glass-reflection),
+      inset 0 -1px 0 color-mix(in srgb, var(--glass-light) 5%, transparent),
+      0 16px 48px -20px var(--glass-shadow),
+      0 2px 8px -4px var(--glass-shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    backdrop-filter: blur(24px) saturate(145%);
+  }
+
+  .glass-button {
+    --glass-tint: var(--glass-fill);
+    position: relative;
+    isolation: isolate;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    border: 1px solid var(--glass-edge);
+    border-radius: 999px;
+    background:
+      linear-gradient(175deg, color-mix(in srgb, var(--glass-light) 18%, transparent), color-mix(in srgb, var(--glass-light) 3%, transparent) 48%, transparent 52%),
+      var(--glass-tint);
+    color: var(--text-primary);
+    box-shadow:
+      inset 0 1px 0 var(--glass-reflection),
+      inset 0 -1px 1px color-mix(in srgb, var(--glass-light) 6%, transparent),
+      0 4px 12px -4px var(--glass-shadow);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.035em;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out, scale 150ms ease-out;
+  }
+
+  .glass-button--primary {
+    --glass-tint: color-mix(in srgb, var(--hugo-cyan) 22%, var(--glass-fill));
+    border-color: color-mix(in srgb, var(--hugo-cyan) 38%, var(--glass-edge));
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--hugo-cyan) 55%, var(--glass-reflection)), inset 0 -1px 0 var(--glass-edge), 0 6px 24px -12px var(--glow);
+  }
+
+  .glass-button--ghost {
+    --glass-tint: color-mix(in srgb, var(--surface) 24%, transparent);
+    background-image: linear-gradient(175deg, color-mix(in srgb, var(--glass-light) 7%, transparent), transparent 60%);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-reflection) 55%, transparent);
+  }
+
+  .glass-button--destructive {
+    --glass-tint: color-mix(in srgb, var(--error) 12%, var(--glass-fill));
+    color: var(--error);
+    border-color: color-mix(in srgb, var(--error) 30%, var(--glass-edge));
+  }
+
+  .glass-button:is(:disabled, [data-disabled="true"], [aria-disabled="true"]) {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .glass-button:is(:focus-visible, [data-focus-visible="true"]),
+  .glass-tab:is(:focus-visible, [data-focus-visible="true"]) {
+    outline: 2px solid var(--hugo-cyan);
+    outline-offset: 3px;
+  }
+
+  .glass-field {
+    background: var(--glass-field);
+    color: var(--text-primary);
+    border: 1px solid color-mix(in srgb, var(--text-secondary) 65%, var(--glass-edge));
+    border-radius: 1rem;
+    box-shadow: inset 0 2px 6px color-mix(in srgb, var(--glass-shade) 10%, transparent), 0 1px 0 color-mix(in srgb, var(--glass-reflection) 35%, transparent);
+    font-size: 1rem;
+    transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
+  .glass-tabs {
+    padding: 0.25rem;
+    border-radius: 999px;
+    background: var(--glass-field);
+    border: 1px solid var(--glass-edge);
+    box-shadow: inset 0 2px 6px color-mix(in srgb, var(--glass-shade) 12%, transparent);
+  }
+
+  .glass-tab {
+    flex: 1;
+    min-height: 2.75rem;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.025em;
+    transition: color 120ms ease-out, background-color 120ms ease-out;
+  }
+
+  .glass-tab[aria-selected="true"] {
+    background: linear-gradient(175deg, color-mix(in srgb, var(--glass-light) 15%, transparent), transparent), var(--glass-fill);
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 0 var(--glass-reflection), inset 0 0 0 1px var(--glass-edge), 0 2px 8px -3px var(--glass-shadow);
+  }
+
+  .glass-switch-control {
+    border: 1px solid var(--glass-edge);
+    box-shadow: inset 0 1px 3px var(--glass-shadow), 0 1px 0 var(--glass-edge);
+  }
+
+  .glass-switch-thumb {
+    background: linear-gradient(160deg, var(--glass-light), color-mix(in srgb, var(--glass-light) 70%, var(--text-secondary)));
+    box-shadow: inset 0 1px 0 var(--glass-light), 0 2px 5px var(--glass-shadow);
+  }
+
+  .glass-composer {
+    border-radius: 1.75rem;
+    background: var(--glass-field);
+    border: 1px solid var(--glass-edge);
+    box-shadow: inset 0 1px 0 var(--glass-reflection);
+  }
+
+  .glass-composer:focus-within {
+    border-color: var(--hugo-cyan);
+  }
+
+  .glass-composer .glass-field {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .glass-button:not(:disabled, [data-disabled="true"], [aria-disabled="true"]):hover {
+      background-color: color-mix(in srgb, var(--glass-light) 8%, var(--glass-tint));
+      border-color: var(--glass-reflection);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .glass-button:not(:disabled, [data-disabled="true"], [aria-disabled="true"]):is(:active, [data-pressed="true"]) {
+      scale: 0.96;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glass-button { transform: none; scale: 1; }
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .panel, .liquid-glass, .glass-button { background-color: var(--surface-elevated); }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .panel, .liquid-glass, .glass-button {
+      background-color: var(--surface-elevated);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .panel, .liquid-glass, .glass-button, .glass-field, .glass-tabs, .glass-tab[aria-selected="true"] {
+      border: 1px solid ButtonText;
+      box-shadow: none;
+    }
+  }
 }
 
 .text-glow {

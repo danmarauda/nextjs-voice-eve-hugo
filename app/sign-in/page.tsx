@@ -25,7 +25,7 @@ function AuthCardFallback() {
 export default function SignInPage() {
   return (
     <main className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-4 py-24 text-text-primary">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-20">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-30">
         <LandingArtwork />
       </div>
       <div className="absolute left-4 top-5 sm:left-6">

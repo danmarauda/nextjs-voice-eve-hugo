@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { toast } from "sonner";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
+import { getAuthRedirect } from "@/lib/auth-redirect";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -48,10 +49,9 @@ const COPY: Record<
 };
 
 /**
- * AuthForm — email/password auth via Convex Auth's password provider. Handles
- * both sign in and sign up flows. On success it routes to the `next` param (or
- * /chat); on failure it surfaces a friendly toast. The submit button shows a
- * spinner and disables all inputs while the request is in flight.
+ * AuthForm — email/password and Google sign-in via Convex Auth. Handles both
+ * sign in and sign up flows, with safe return paths and inline OAuth errors.
+ * Both sign-in methods disable the form while a request is in flight.
  */
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const { signIn } = useAuthActions();
@@ -60,7 +60,40 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const searchParams = useSearchParams();
   const copy = COPY[mode];
 
-  const [submitting, setSubmitting] = useState(false);
+  const [pendingProvider, setPendingProvider] = useState<"password" | "google" | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const submitting = pendingProvider !== null;
+  const destination = getAuthRedirect(searchParams.get("next"));
+  const oauthReturned = searchParams.get("oauth") === "google";
+
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (event.persisted) setPendingProvider(null);
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
+
+  async function onGoogleSignIn() {
+    if (submitting) return;
+    setGoogleError(null);
+
+    // Google blocks embedded sign-in; start from the app in a top-level tab.
+    if (window.self !== window.top) {
+      window.open(window.location.href, "_blank", "noopener,noreferrer");
+      toast.info("Continue with Google in the new tab. If it did not open, allow pop-ups.");
+      return;
+    }
+
+    setPendingProvider("google");
+    try {
+      const callback = new URLSearchParams({ oauth: "google", next: destination });
+      await signIn("google", { redirectTo: `/sign-in?${callback}` });
+    } catch {
+      setGoogleError("Could not start Google sign-in. Please try again or use email and password.");
+      setPendingProvider(null);
+    }
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,7 +113,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
-    setSubmitting(true);
+    setPendingProvider("password");
     try {
       await signIn("password", {
         email,
@@ -88,22 +121,21 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         ...(mode === "signUp" ? { name, flow: "signUp" } : { flow: "signIn" }),
       });
       clearSignOut();
-      const next = searchParams.get("next");
-      router.push(next && next.startsWith("/") ? next : "/chat");
+      router.push(destination);
     } catch {
       toast.error(
         mode === "signUp"
           ? "Could not create your account. That email may already be in use."
           : "Invalid email or password.",
       );
-      setSubmitting(false);
+      setPendingProvider(null);
     }
   }
 
-  const switchHref = (() => {
-    const next = searchParams.get("next");
-    return next ? `${copy.switchHref}?next=${encodeURIComponent(next)}` : copy.switchHref;
-  })();
+  const switchHref = `${copy.switchHref}?next=${encodeURIComponent(destination)}`;
+  const oauthError = googleError ?? (oauthReturned && !submitting
+    ? "Google sign-in was not completed. Please try again or use email and password."
+    : null);
 
   return (
     <Card className="animate-rise w-full max-w-sm rounded-[2rem] p-7 sm:p-8">
@@ -115,7 +147,35 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <p className="mt-2 text-base leading-relaxed text-pretty text-text-secondary">{copy.subtitle}</p>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-7 flex flex-col gap-4">
+      <div className="mt-7">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={onGoogleSignIn}
+          disabled={submitting}
+          aria-busy={pendingProvider === "google"}
+          aria-describedby={oauthError ? "google-sign-in-error" : undefined}
+        >
+          {pendingProvider === "google" ? (
+            <><Spinner className="text-text-primary" />Connecting to Google…</>
+          ) : "Continue with Google"}
+        </Button>
+        {oauthError && (
+          <p id="google-sign-in-error" role="alert" className="mt-3 text-sm leading-relaxed text-error">
+            {oauthError}
+          </p>
+        )}
+      </div>
+
+      <div className="my-5 flex items-center gap-3 text-sm text-text-secondary">
+        <span aria-hidden="true" className="h-px flex-1 bg-border" />
+        <span>or continue with email</span>
+        <span aria-hidden="true" className="h-px flex-1 bg-border" />
+      </div>
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {mode === "signUp" && (
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Name</Label>
@@ -170,9 +230,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           size="lg"
           className="mt-1 w-full"
           disabled={submitting}
-          aria-busy={submitting}
+          aria-busy={pendingProvider === "password"}
         >
-          {submitting ? (
+          {pendingProvider === "password" ? (
             <>
               <Spinner className="text-text-primary" />
               {copy.pending}

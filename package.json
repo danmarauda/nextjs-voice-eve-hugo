@@ -20,6 +20,7 @@
     "@ai-sdk/gateway": "^4.0.103",
     "@ai-sdk/openai": "^4.0.83",
     "@ai-sdk/react": "^4.0.130",
+    "@auth/core": "0.41.2",
     "@convex-dev/auth": "^0.0.96",
     "@heroui/react": "3.2.6",
     "@heroui/styles": "3.2.6",

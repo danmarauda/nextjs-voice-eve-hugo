@@ -21,6 +21,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^4.0.130
         version: 4.0.130(react@19.3.0)(zod@4.6.5)
+      '@auth/core':
+        specifier: 0.41.2
+        version: 0.41.2
       '@convex-dev/auth':
         specifier: ^0.0.96
         version: 0.0.96(@auth/core@0.41.2)(convex@1.46.0(react@19.3.0))(react@19.3.0)

@@ -1,13 +1,13 @@
+import Google from "@auth/core/providers/google";
 import { Password } from "@convex-dev/auth/providers/Password";
-import { convexAuth } from "@convex-dev/auth/server";
+import { convexAuth, type ConvexAuthConfig } from "@convex-dev/auth/server";
 
 /**
  * Hugo authentication (PRD 5.1).
  *
- * Self-contained email + password auth via Convex Auth — no third-party keys
- * required. On account creation the default-admin email is granted the `admin`
- * role server-side; every other account is a `user`. Role is therefore set in
- * trusted backend code and can never be spoofed from the client.
+ * Email/password and Google OAuth use the same Convex Auth session lifecycle.
+ * New admin accounts require a Google-verified default-admin email. Existing
+ * roles are preserved, and accounts are never linked by matching email alone.
  */
 
 const DEFAULT_ADMIN_EMAIL = (
@@ -20,8 +20,24 @@ const DAILY_TEXT_MESSAGES_LIMIT = Number(
   process.env.DAILY_TEXT_MESSAGES_LIMIT ?? 200,
 );
 
-export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
+export const authConfig = {
   providers: [
+    Google({
+      allowDangerousEmailAccountLinking: false,
+      checks: ["pkce", "state"],
+      profile(profile) {
+        if (profile.email_verified !== true || !profile.email) {
+          throw new Error("Google sign-in requires a verified email address.");
+        }
+        return {
+          id: profile.sub,
+          email: profile.email.toLowerCase().trim(),
+          emailVerified: true,
+          name: profile.name,
+          image: profile.picture,
+        };
+      },
+    }),
     Password({
       // Normalize email and carry an optional display name from the sign-up form.
       profile(params) {
@@ -39,10 +55,15 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   callbacks: {
     /**
      * Owns user-document creation/update. New accounts get Hugo profile
-     * defaults; the default-admin email is elevated to `admin`. Existing
-     * accounts just refresh activity timestamps.
+     * defaults; only Google's verified default-admin email can create an admin.
+     * Existing accounts retain their IDs, roles, ownership and preferences.
      */
-    async createOrUpdateUser(ctx, { existingUserId, profile }) {
+    async createOrUpdateUser(ctx, { existingUserId, profile, type, provider }) {
+      const verifiedGoogleEmail =
+        type === "oauth" && provider.id === "google" && profile.emailVerified === true;
+      if (type === "oauth" && provider.id === "google" && !verifiedGoogleEmail) {
+        throw new Error("Google sign-in requires a verified email address.");
+      }
       const now = Date.now();
       const email =
         typeof profile.email === "string"
@@ -66,10 +87,12 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         return existingUserId;
       }
 
-      const role = email && email === DEFAULT_ADMIN_EMAIL ? "admin" : "user";
+      const role =
+        verifiedGoogleEmail && email === DEFAULT_ADMIN_EMAIL ? "admin" : "user";
 
       return await ctx.db.insert("users", {
         email,
+        ...(verifiedGoogleEmail ? { emailVerificationTime: now } : {}),
         name,
         image,
         role,
@@ -85,4 +108,6 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       });
     },
   },
-});
+} satisfies ConvexAuthConfig;
+
+export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth(authConfig);

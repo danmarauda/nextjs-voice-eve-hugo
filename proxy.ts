@@ -3,6 +3,7 @@ import {
   createRouteMatcher,
   nextjsMiddlewareRedirect,
 } from "@convex-dev/auth/nextjs/server";
+import { getAuthRedirect } from "@/lib/auth-redirect";
 
 /**
  * Next.js 16 proxy (formerly middleware). Provides route-level auth protection
@@ -25,7 +26,10 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const authed = await convexAuth.isAuthenticated();
 
   if (isSignInPage(request) && authed) {
-    return nextjsMiddlewareRedirect(request, "/");
+    const destination = request.nextUrl.searchParams.get("oauth") === "google"
+      ? getAuthRedirect(request.nextUrl.searchParams.get("next"))
+      : "/";
+    return nextjsMiddlewareRedirect(request, destination);
   }
 
   if (isProtectedRoute(request) && !authed) {

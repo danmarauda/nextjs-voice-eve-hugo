@@ -4,19 +4,20 @@ import { api } from "@/convex/_generated/api";
 import { TopNav } from "@/components/layout/TopNav";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/landing/Hero";
+import { LandingArtwork } from "@/components/landing/LandingArtwork";
 import { FeatureGrid } from "@/components/landing/FeatureGrid";
 
 /**
  * Landing / marketing page (PRD 5.2) — the primary showcase surface.
  *
  * Server component by design: the only interactive bits (orb navigation,
- * auth-gated CTAs) live in <Hero>, a small client child. Everything else —
- * ambient background, chrome, feature grid, tech strip — renders on the server.
+ * auth-gated CTAs) live in <Hero>; the feature grid handles its own entrance.
+ * Artwork, chrome, and the tech strip render on the server.
  *
  * Layout, top to bottom:
- *   1. Fixed ambient grid + radial glow backdrop
+ *   1. Dark-first material surface
  *   2. TopNav
- *   3. Hero (orb, headline, CTAs) — above the fold
+ *   3. Hero (ALIAS artwork, orb, headline, CTAs) — above the fold
  *   4. "Command surface" feature grid
  *   5. Tech strip
  *   6. Footer
@@ -43,31 +44,14 @@ export default async function LandingPage() {
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-hidden">
-      {/* Ambient backdrop — fixed so it never scrolls away */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-grid bg-grid-fade opacity-60" />
-        {/* Primary cyan glow behind the hero */}
-        <div
-          className="absolute left-1/2 top-[18%] h-[42rem] w-[42rem] -translate-x-1/2 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, var(--glow), transparent 65%)",
-            filter: "blur(40px)",
-          }}
-        />
-        {/* Cool secondary wash near the fold edge */}
-        <div className="absolute -bottom-32 left-1/2 h-[28rem] w-[80rem] -translate-x-1/2 rounded-full bg-hugo-blue/5 blur-3xl" />
-        {/* Top fade into the nav */}
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent" />
-      </div>
-
       <TopNav />
 
       <main className="flex flex-1 flex-col">
         {/* Hero — above the fold, viewport-first */}
-        <section className="relative flex min-h-[88vh] items-center justify-center px-6 pb-20 pt-28">
-          <div className="w-full max-w-5xl">
+        <section className="relative flex items-center justify-center px-6 pb-20 pt-24 lg:min-h-[88svh] lg:pb-24 lg:pt-32">
+          <div className="w-full max-w-6xl">
             <Hero
+              artwork={<LandingArtwork />}
               initialAuthed={initialAuthed}
               guestPreviewEnabled={guestPreviewEnabled}
             />

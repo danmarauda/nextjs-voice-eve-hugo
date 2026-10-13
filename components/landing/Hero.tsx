@@ -8,7 +8,6 @@ import { ArrowRight, Lock, MessageSquareText, Mic } from "lucide-react";
 import { createScope, createTimeline, stagger, utils, type Scope } from "animejs";
 import { OrbSlot } from "@/components/hugo/OrbSlot";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useReducedMotion } from "@/components/motion/useReducedMotion";
 import { api } from "@/convex/_generated/api";
@@ -42,8 +41,8 @@ function CtaRow({
   showSignInHint: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex flex-col items-center gap-3 sm:flex-row">
+    <div className="flex flex-col items-center gap-3 lg:items-start">
+      <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
         <Link
           href={talkHref}
           className={cn(
@@ -67,7 +66,7 @@ function CtaRow({
         </Link>
       </div>
       {showSignInHint ? (
-        <p className="flex items-center gap-1.5 text-xs text-text-muted">
+        <p className="flex items-center gap-1.5 text-sm leading-relaxed text-text-secondary">
           <Lock className="size-3" aria-hidden="true" />
           <span>
             Sign-in required to start a live session.
@@ -83,7 +82,7 @@ function CtaRow({
  *  apply cleanly; whitespace between them is preserved with explicit spaces. */
 function HeadlineWords() {
   return (
-    <h1 className="text-balance text-5xl font-semibold tracking-tight text-text-primary sm:text-6xl md:text-7xl">
+    <h1 className="text-balance font-sans text-4xl font-medium leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
       <span
         data-hero-word
         className="inline-block will-change-transform"
@@ -93,7 +92,7 @@ function HeadlineWords() {
       </span>{" "}
       <span
         data-hero-word
-        className="inline-block text-hugo-cyan text-glow will-change-transform"
+        className="inline-block will-change-transform"
         style={{ opacity: 0 }}
       >
         ALIAS BDO.
@@ -103,9 +102,11 @@ function HeadlineWords() {
 }
 
 export function Hero({
+  artwork,
   initialAuthed = false,
   guestPreviewEnabled = false,
 }: {
+  artwork: React.ReactNode;
   /** Auth resolved on the server (app/page.tsx) so first paint is correct. */
   initialAuthed?: boolean;
   /** Public guest-preview setting resolved on the server. */
@@ -208,58 +209,68 @@ export function Hero({
   return (
     <section
       ref={rootRef}
-      className="relative flex flex-col items-center gap-10 text-center"
+      className="relative flex flex-col items-center gap-8 text-center lg:flex-row lg:gap-16 lg:text-left"
     >
-      {/* Orb — a single stable instance; state + destination derive from auth
-          values so it never remounts (see note above). */}
-      {/* The shared app-layer orb docks here on the landing page. */}
-      <div data-hero-orb data-hero-reveal style={hidden}>
-        <OrbSlot state="idle" size={280} onClick={() => router.push(orbHref)} />
-      </div>
-
-      {/* Eyebrow */}
-      <div data-hero-eyebrow data-hero-reveal style={hidden}>
-        <Badge variant="cyan" className="px-3 py-1">
-          <span className="size-1.5 rounded-full bg-hugo-cyan shadow-[0_0_8px_var(--glow)]" />
-          REALTIME · VOICE-NATIVE
-        </Badge>
-      </div>
-
-      {/* Headline + copy */}
-      <div className="flex max-w-2xl flex-col items-center gap-5">
-        <HeadlineWords />
+      <div className="relative isolate aspect-[6/5] w-full max-w-[30rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-surface lg:order-last lg:aspect-square lg:w-1/2 lg:max-w-none">
+        {artwork}
+        {/* Orb — a single stable instance; state + destination derive from auth
+            values so it never remounts (see note above). */}
+        {/* The shared app-layer orb docks here on the landing page. */}
         <div
-          data-hero-copy
+          data-hero-orb
           data-hero-reveal
-          className="flex flex-col items-center gap-5"
+          className="absolute bottom-3 right-3"
           style={hidden}
         >
-          <p className="text-balance text-lg text-text-secondary sm:text-xl">
-            Your Bid Delivery Orchestrator.
-          </p>
-          <p className="max-w-xl text-balance text-sm text-text-muted sm:text-base">
-            Bring your tender documents. Find the requirements, question the
-            gaps, and build a source-grounded response. By voice or in chat.
-          </p>
+          <OrbSlot state="idle" size={96} onClick={() => router.push(orbHref)} />
         </div>
       </div>
 
-      {/* CTAs — auth-gated. `authed` derives from the server-resolved value
-          during the loading window, so this renders the correct destination on
-          first paint (no flash) and stays hydration-stable. */}
-      <div data-hero-cta data-hero-reveal style={hidden}>
-        {authed ? (
-          <div className="flex flex-col items-center gap-3">
-            <CtaRow talkHref="/chat" textHref="/chat" showSignInHint={false} />
-            <Link href="/workspace" className={`${buttonVariants({ variant: "ghost" })} min-h-11`}>Open document workspace <ArrowRight aria-hidden className="size-4" /></Link>
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-6 lg:items-start lg:gap-8">
+        {/* Eyebrow */}
+        <div data-hero-eyebrow data-hero-reveal style={hidden}>
+          <span className="inline-flex items-center gap-2 font-mono text-sm tracking-widest text-text-secondary">
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-hugo-cyan" />
+            REALTIME · VOICE-NATIVE
+          </span>
+        </div>
+
+        {/* Headline + copy */}
+        <div className="flex max-w-2xl flex-col items-center gap-5 lg:items-start">
+          <HeadlineWords />
+          <div
+            data-hero-copy
+            data-hero-reveal
+            className="flex flex-col items-center gap-4 lg:items-start"
+            style={hidden}
+          >
+            <p className="text-balance text-lg leading-relaxed text-text-primary sm:text-xl">
+              Your Bid Delivery Orchestrator.
+            </p>
+            <p className="max-w-md text-pretty text-base leading-relaxed text-text-secondary">
+              Bring your tender documents. Find the requirements, question the
+              gaps, and build a source-grounded response. By voice or in chat.
+            </p>
           </div>
-        ) : (
-          <CtaRow
-            talkHref={guestHref}
-            textHref={guestHref}
-            showSignInHint={!guestPreview}
-          />
-        )}
+        </div>
+
+        {/* CTAs — auth-gated. `authed` derives from the server-resolved value
+            during the loading window, so this renders the correct destination on
+            first paint (no flash) and stays hydration-stable. */}
+        <div data-hero-cta data-hero-reveal className="w-full" style={hidden}>
+          {authed ? (
+            <div className="flex flex-col items-center gap-3 lg:items-start">
+              <CtaRow talkHref="/chat" textHref="/chat" showSignInHint={false} />
+              <Link href="/workspace" className={`${buttonVariants({ variant: "ghost" })} min-h-11`}>Open document workspace <ArrowRight aria-hidden className="size-4" /></Link>
+            </div>
+          ) : (
+            <CtaRow
+              talkHref={guestHref}
+              textHref={guestHref}
+              showSignInHint={!guestPreview}
+            />
+          )}
+        </div>
       </div>
     </section>
   );

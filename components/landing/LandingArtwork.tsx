@@ -1,0 +1,16 @@
+import Image from "next/image";
+import aliasMaterial from "@/public/images/alias-material.jpeg";
+
+export function LandingArtwork() {
+  return (
+    <Image
+      src={aliasMaterial}
+      alt="Sculpted charcoal layers and silver-cut edges forming the ALIAS mark."
+      fill
+      sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 480px, 560px"
+      preload
+      placeholder="blur"
+      className="pointer-events-none select-none object-cover"
+    />
+  );
+}
